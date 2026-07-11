@@ -128,6 +128,8 @@ public class ReportsService : IReportsService
             Reason = movement.Reason,
             UserId = movement.UserId,
             Username = movement.User?.Username ?? "Unknown",
+            UserFullName = movement.User?.FullName ?? "Unknown",
+            UserRole = movement.User?.Role ?? "Unknown",
             CreatedAt = movement.CreatedAt
         }).ToList();
 
