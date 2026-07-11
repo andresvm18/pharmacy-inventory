@@ -188,6 +188,7 @@ public class SalesService : ISalesService
                 ProductName = item.Batch.Product?.Name ?? "Unknown",
                 BatchId = item.BatchId,
                 LotNumber = item.Batch.LotNumber,
+                ExpiryDate = item.Batch.ExpiryDate,
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice
             });

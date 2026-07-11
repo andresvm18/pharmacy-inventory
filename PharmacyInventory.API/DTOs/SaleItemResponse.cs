@@ -8,6 +8,7 @@ public class SaleItemResponse
     public string ProductName { get; set; } = null!;
     public int BatchId { get; set; }
     public string LotNumber { get; set; } = null!;
+    public DateTime ExpiryDate { get; set; }
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal Subtotal => Quantity * UnitPrice;
