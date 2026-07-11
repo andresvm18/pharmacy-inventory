@@ -34,7 +34,8 @@ public class SalesService : ISalesService
     }
 
     /// Create a new sale with FEFO (First Expired, First Out) batch selection.
-    /// Automatically allocates stock from the batch expiring soonest.
+    /// The entire operation (stock deduction, movements, sale) runs in a single
+    /// transaction: either everything commits or nothing does.
     public async Task<SaleResponse> CreateSaleAsync(int userId, CreateSaleRequest request)
     {
         if (request.Items == null || request.Items.Count == 0)
@@ -44,91 +45,91 @@ public class SalesService : ISalesService
         if (user == null)
             throw new InvalidOperationException($"User with ID {userId} not found");
 
-        // Create the sale
-        var sale = new Sale
+        // EnableRetryOnFailure requires wrapping manual transactions in an execution strategy
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+        var saleId = await strategy.ExecuteAsync(async () =>
         {
-            UserId = userId,
-            Total = 0,
-            CreatedAt = DateTime.UtcNow
-        };
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-        var saleItems = new List<SaleItem>();
-        decimal totalAmount = 0;
-
-        // Process each item in the request
-        foreach (var item in request.Items)
-        {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
-            if (product == null)
-                throw new InvalidOperationException($"Product with ID {item.ProductId} not found");
-
-            if (item.Quantity <= 0)
-                throw new InvalidOperationException($"Quantity must be greater than 0 for product {product.Sku}");
-
-            // Get available batches sorted by expiry date (FEFO)
-            var batches = await _dbContext.Batches
-                .Where(b => b.ProductId == item.ProductId && b.ExpiryDate >= DateTime.Now.Date && b.Quantity > 0)
-                .OrderBy(b => b.ExpiryDate)
-                .ToListAsync();
-
-            if (!batches.Any())
-                throw new InvalidOperationException($"Insufficient stock for product {product.Sku}");
-
-            var quantityRemaining = item.Quantity;
-
-            // Allocate from batches in FEFO order
-            foreach (var batch in batches)
+            var sale = new Sale
             {
-                if (quantityRemaining <= 0)
-                    break;
+                UserId = userId,
+                Total = 0,
+                CreatedAt = DateTime.UtcNow
+            };
 
-                var quantityFromBatch = Math.Min(quantityRemaining, batch.Quantity);
+            decimal totalAmount = 0;
+            var today = DateTime.UtcNow.Date;
 
-                // Create sale item for this batch allocation
-                var saleItem = new SaleItem
+            foreach (var item in request.Items)
+            {
+                var product = await _productRepository.GetByIdAsync(item.ProductId);
+                if (product == null)
+                    throw new InvalidOperationException($"Product with ID {item.ProductId} not found");
+
+                if (item.Quantity <= 0)
+                    throw new InvalidOperationException($"Quantity must be greater than 0 for product {product.Sku}");
+
+                // FEFO: batches sorted by expiry date ascending, expired excluded
+                var batches = await _dbContext.Batches
+                    .Where(b => b.ProductId == item.ProductId && b.ExpiryDate >= today && b.Quantity > 0)
+                    .OrderBy(b => b.ExpiryDate)
+                    .ToListAsync();
+
+                var totalAvailable = batches.Sum(b => b.Quantity);
+                if (totalAvailable < item.Quantity)
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for product {product.Sku}. Requested: {item.Quantity}, Available: {totalAvailable}");
+
+                var quantityRemaining = item.Quantity;
+
+                foreach (var batch in batches)
                 {
-                    BatchId = batch.Id,
-                    Quantity = quantityFromBatch,
-                    UnitPrice = product.UnitPrice // Snapshot price at time of sale
-                };
+                    if (quantityRemaining <= 0)
+                        break;
 
-                saleItems.Add(saleItem);
-                totalAmount += quantityFromBatch * product.UnitPrice;
+                    var quantityFromBatch = Math.Min(quantityRemaining, batch.Quantity);
 
-                // Deduct from batch
-                batch.Quantity -= quantityFromBatch;
-                await _dbContext.SaveChangesAsync();
+                    sale.SaleItems.Add(new SaleItem
+                    {
+                        BatchId = batch.Id,
+                        Quantity = quantityFromBatch,
+                        UnitPrice = product.UnitPrice // Snapshot price at time of sale
+                    });
 
-                // Record stock movement
-                var movement = new StockMovement
-                {
-                    BatchId = batch.Id,
-                    Type = "SALE",
-                    Quantity = -quantityFromBatch,
-                    Reason = $"Sale item for product {product.Sku}",
-                    UserId = userId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _dbContext.StockMovements.AddAsync(movement);
-                await _dbContext.SaveChangesAsync();
+                    totalAmount += quantityFromBatch * product.UnitPrice;
+                    batch.Quantity -= quantityFromBatch;
 
-                quantityRemaining -= quantityFromBatch;
+                    _dbContext.StockMovements.Add(new StockMovement
+                    {
+                        BatchId = batch.Id,
+                        Type = "SALE",
+                        Quantity = -quantityFromBatch,
+                        Reason = $"Sale item for product {product.Sku}",
+                        UserId = userId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    quantityRemaining -= quantityFromBatch;
+                }
             }
 
-            if (quantityRemaining > 0)
-                throw new InvalidOperationException(
-                    $"Insufficient stock for product {product.Sku}. Requested: {item.Quantity}, Available: {item.Quantity - quantityRemaining}");
-        }
+            sale.Total = totalAmount;
+            _dbContext.Sales.Add(sale);
 
-        sale.Total = totalAmount;
-        sale.SaleItems = saleItems;
+            // Single SaveChanges: one atomic write for sale + items + movements + batch updates
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-        // Save the sale
-        await _salesRepository.AddAsync(sale);
+            return sale.Id;
+        });
 
-        _logger.LogInformation($"Sale #{sale.Id} created by user {user.Username} with total {totalAmount}");
+        _logger.LogInformation("Sale #{SaleId} created by user {Username}", saleId, user.Username);
 
-        return await MapToResponseAsync(sale);
+        // Reload with full graph for the response
+        var createdSale = await _salesRepository.GetSaleWithItemsAsync(saleId);
+        return MapToResponse(createdSale!);
     }
 
     public async Task<SaleResponse?> GetSaleByIdAsync(int saleId)
@@ -137,7 +138,7 @@ public class SalesService : ISalesService
         if (sale == null)
             return null;
 
-        return await MapToResponseAsync(sale);
+        return MapToResponse(sale);
     }
 
     public async Task<IEnumerable<SaleResponse>> GetSalesByDateRangeAsync(DateTime startDate, DateTime endDate)
@@ -147,7 +148,7 @@ public class SalesService : ISalesService
 
         foreach (var sale in sales)
         {
-            responses.Add(await MapToResponseAsync(sale));
+            responses.Add(MapToResponse(sale));
         }
 
         return responses;
@@ -160,13 +161,13 @@ public class SalesService : ISalesService
 
         foreach (var sale in sales)
         {
-            responses.Add(await MapToResponseAsync(sale));
+            responses.Add(MapToResponse(sale));
         }
 
         return responses;
     }
 
-    private async Task<SaleResponse> MapToResponseAsync(Sale sale)
+    private static SaleResponse MapToResponse(Sale sale)
     {
         var response = new SaleResponse
         {
@@ -192,6 +193,6 @@ public class SalesService : ISalesService
             });
         }
 
-        return await Task.FromResult(response);
+        return response;
     }
 }
