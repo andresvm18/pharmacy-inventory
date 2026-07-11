@@ -90,4 +90,58 @@ public class ReportsController : ControllerBase
                 new ErrorResponse { Message = "Error retrieving stock movements" });
         }
     }
+
+    /// Get daily revenue totals for charting.
+    /// Query params: startDate, endDate (ISO format)
+    [HttpGet("revenue-by-day")]
+    [ProducesResponseType(typeof(IEnumerable<DailyRevenueResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetRevenueByDay(
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate)
+    {
+        try
+        {
+            if (startDate > endDate)
+                return BadRequest(new ErrorResponse { Message = "Start date must be before end date" });
+
+            var report = await _reportsService.GetRevenueByDayAsync(startDate, endDate);
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating daily revenue report");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse { Message = "Error generating report" });
+        }
+    }
+
+    /// Get best-selling products by units sold.
+    /// Query params: startDate, endDate, limit (default 5)
+    [HttpGet("top-products")]
+    [ProducesResponseType(typeof(IEnumerable<TopProductResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetTopProducts(
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        [FromQuery] int limit = 5)
+    {
+        try
+        {
+            if (startDate > endDate)
+                return BadRequest(new ErrorResponse { Message = "Start date must be before end date" });
+
+            if (limit <= 0 || limit > 50)
+                return BadRequest(new ErrorResponse { Message = "Limit must be between 1 and 50" });
+
+            var report = await _reportsService.GetTopProductsAsync(startDate, endDate, limit);
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating top products report");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new ErrorResponse { Message = "Error generating report" });
+        }
+    }
 }
