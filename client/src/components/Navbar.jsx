@@ -29,46 +29,45 @@ export default function Navbar() {
   );
 
   const linkClass = ({ isActive }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition ${isActive
-      ? 'bg-pharmacy-700 text-white'
-      : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
+    `px-3 py-2 text-sm font-medium transition border-b-2 ${
+      isActive
+        ? 'text-clinical-700 border-clinical-600'
+        : 'text-stone-500 border-transparent hover:text-stone-900'
     }`;
 
   return (
-    <nav className="bg-pharmacy-600 text-white shadow-lg">
+    <nav className="bg-white border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo + desktop nav */}
           <div className="flex items-center space-x-8">
             <button
-              className="text-xl font-bold flex items-center gap-2"
+              className="font-display text-lg font-semibold text-stone-900 flex items-center gap-2"
               onClick={() => navigate('/dashboard')}
             >
-              💊 <span className="hidden sm:inline">Pharmacy Inventory</span>
+              <span className="w-2 h-2 rounded-full bg-clinical-600" aria-hidden="true" />
+              <span className="hidden sm:inline">Pharmacy Inventory</span>
             </button>
 
-            <div className="hidden md:flex space-x-2">
+            <div className="hidden md:flex h-16 items-stretch">
               {visibleItems.map((item) => (
                 <NavLink key={item.to} to={item.to} className={linkClass}>
-                  {item.label}
+                  <span className="flex items-center h-full">{item.label}</span>
                 </NavLink>
               ))}
             </div>
           </div>
 
-          {/* User info + logout (desktop) */}
           <div className="hidden md:flex items-center space-x-4">
-            <span className="text-sm text-pharmacy-50">
-              {user?.fullName} <span className="text-pharmacy-100">({formatRole(user?.role)})</span>
+            <span className="text-sm text-stone-600">
+              {user?.fullName} <span className="text-stone-400">({formatRole(user?.role)})</span>
             </span>
-            <button onClick={handleLogout} className="btn-secondary text-sm">
+            <button onClick={handleLogout} className="btn-secondary text-sm py-1.5">
               Logout
             </button>
           </div>
 
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 rounded-md hover:bg-pharmacy-700 transition"
+            className="md:hidden p-2 rounded-md text-stone-500 hover:bg-stone-100 transition"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
@@ -83,17 +82,17 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1">
+          <div className="md:hidden pb-4 space-y-1 border-t border-stone-200 pt-2">
             {visibleItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium transition ${isActive
-                    ? 'bg-pharmacy-700 text-white'
-                    : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
+                  `block px-3 py-2 rounded-md text-base font-medium transition ${
+                    isActive
+                      ? 'bg-clinical-50 text-clinical-700'
+                      : 'text-stone-600 hover:bg-stone-50'
                   }`
                 }
                 onClick={() => setMobileOpen(false)}
@@ -101,11 +100,11 @@ export default function Navbar() {
                 {item.label}
               </NavLink>
             ))}
-            <div className="border-t border-pharmacy-500 pt-3 mt-3 flex items-center justify-between px-3">
-              <span className="text-sm text-pharmacy-50">
-                {user?.fullName} <span className="text-pharmacy-100">({formatRole(user?.role)})</span>
+            <div className="border-t border-stone-200 pt-3 mt-3 flex items-center justify-between px-3">
+              <span className="text-sm text-stone-600">
+                {user?.fullName} <span className="text-stone-400">({formatRole(user?.role)})</span>
               </span>
-              <button onClick={handleLogout} className="btn-secondary text-sm">
+              <button onClick={handleLogout} className="btn-secondary text-sm py-1.5">
                 Logout
               </button>
             </div>

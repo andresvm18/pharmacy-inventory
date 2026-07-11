@@ -7,19 +7,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        pharmacy: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        }
-      }
+        clinical: {
+          50: '#EEF5F3',
+          100: '#D9EAE5',
+          200: '#B3D5CB',
+          300: '#86BDAF',
+          400: '#4C9C89',
+          500: '#1D7A67',
+          600: '#0F5D52',
+          700: '#0C4A42',
+          800: '#093A34',
+          900: '#062924',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
     },
   },
   plugins: [],
