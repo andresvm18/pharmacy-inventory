@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PharmacyInventory.API.Data;
 using PharmacyInventory.API.Services;
+using PharmacyInventory.API.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ builder.Services.AddDbContext<PharmacyDbContext>(options =>
 
 // Add services
 builder.Services.AddScoped<IAuthService, AuthService>();
+// Add repositories
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Add JWT authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
