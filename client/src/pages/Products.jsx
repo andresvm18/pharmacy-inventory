@@ -1,11 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { List, LayoutGrid, Syringe, Plus, Pencil } from 'lucide-react';
+import { List, LayoutGrid, Syringe, Plus, Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 import { supplierService } from '../services/supplierService';
 import ProductFormModal from '../components/ProductFormModal';
+
+const SORT_ACCESSORS = {
+  sku: (p) => p.sku,
+  name: (p) => p.name,
+  category: (p) => p.categoryName,
+  price: (p) => p.unitPrice,
+  stock: (p) => p.stockAvailable,
+};
 
 export default function Products() {
   const { user } = useAuth();
@@ -20,6 +28,7 @@ export default function Products() {
   const [view, setView] = useState('table');
   const [editingProduct, setEditingProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
   const fetchAll = async () => {
     try {
@@ -43,6 +52,14 @@ export default function Products() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleSort = (key) => {
+    setSortConfig((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' }
+    );
+  };
+
   const filteredProducts = useMemo(() => {
     let result = filter === 'low-stock'
       ? products.filter((p) => p.stockAvailable < p.minStock)
@@ -58,8 +75,18 @@ export default function Products() {
       );
     }
 
-    return result;
-  }, [products, filter, search]);
+    const accessor = SORT_ACCESSORS[sortConfig.key];
+    const sorted = [...result].sort((a, b) => {
+      const valA = accessor(a);
+      const valB = accessor(b);
+      const cmp = typeof valA === 'string'
+        ? valA.localeCompare(valB)
+        : valA - valB;
+      return sortConfig.direction === 'asc' ? cmp : -cmp;
+    });
+
+    return sorted;
+  }, [products, filter, search, sortConfig]);
 
   const openCreate = () => {
     setEditingProduct(null);
@@ -89,17 +116,15 @@ export default function Products() {
 
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-              filter === 'all' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'all' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('low-stock')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-              filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             Low stock
           </button>
@@ -107,18 +132,16 @@ export default function Products() {
           <div className="flex bg-stone-100 rounded-md p-1">
             <button
               onClick={() => setView('table')}
-              className={`p-1.5 rounded transition ${
-                view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-              }`}
+              className={`p-1.5 rounded transition ${view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+                }`}
               aria-label="Table view"
             >
               <List className="w-4 h-4" strokeWidth={2} />
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`p-1.5 rounded transition ${
-                view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-              }`}
+              className={`p-1.5 rounded transition ${view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+                }`}
               aria-label="Card view"
             >
               <LayoutGrid className="w-4 h-4" strokeWidth={2} />
@@ -143,7 +166,13 @@ export default function Products() {
           No products match your filters
         </div>
       ) : view === 'table' ? (
-        <ProductsTable products={filteredProducts} canManage={canManage} onEdit={openEdit} />
+        <ProductsTable
+          products={filteredProducts}
+          canManage={canManage}
+          onEdit={openEdit}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+        />
       ) : (
         <ProductsCards products={filteredProducts} canManage={canManage} onEdit={openEdit} />
       )}
@@ -176,9 +205,8 @@ function StockBar({ available, min }) {
       </div>
       <div className="h-[3px] bg-stone-200 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
-            isLow ? 'bg-red-600' : 'bg-clinical-600'
-          }`}
+          className={`h-full rounded-full transition-all ${isLow ? 'bg-red-600' : 'bg-clinical-600'
+            }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -186,18 +214,41 @@ function StockBar({ available, min }) {
   );
 }
 
-function ProductsTable({ products, canManage, onEdit }) {
+function SortableHeader({ label, sortKey, sortConfig, onSort, className = '' }) {
+  const isActive = sortConfig.key === sortKey;
+  const Icon = isActive
+    ? sortConfig.direction === 'asc' ? ArrowUp : ArrowDown
+    : ArrowUpDown;
+
+  return (
+    <th
+      className={`px-4 py-3 text-left font-medium text-xs uppercase tracking-wide ${className}`}
+      aria-sort={isActive ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
+      <button
+        onClick={() => onSort(sortKey)}
+        className={`flex items-center gap-1 hover:text-stone-900 transition ${isActive ? 'text-clinical-700' : 'text-stone-500'
+          }`}
+      >
+        {label}
+        <Icon className="w-3 h-3" strokeWidth={2} />
+      </button>
+    </th>
+  );
+}
+
+function ProductsTable({ products, canManage, onEdit, sortConfig, onSort }) {
   return (
     <div className="card p-0 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">SKU</th>
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Category</th>
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Price</th>
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide w-40">Stock</th>
+              <SortableHeader label="SKU" sortKey="sku" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Name" sortKey="name" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Category" sortKey="category" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Price" sortKey="price" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Stock" sortKey="stock" sortConfig={sortConfig} onSort={onSort} className="w-40" />
               <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
               {canManage && <th className="px-4 py-3"></th>}
             </tr>
