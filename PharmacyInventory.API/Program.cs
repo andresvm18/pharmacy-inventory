@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PharmacyInventory.API.Data;
+using PharmacyInventory.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
