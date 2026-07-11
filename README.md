@@ -19,15 +19,17 @@ Full-stack pharmacy inventory management system featuring batch and expiration d
 
 ## Features
 
-- **Product, category, and supplier management**
+- **Product, category, and supplier management:** Full create/edit UI for products, gated to Admin and Pharmacist roles.
 - **Batch-based inventory:** Each product is split into batches, each with a batch number, expiration date, and quantity. Total stock is a derived value.
 - **FEFO-driven sales** (*first expired, first out*): Sales automatically deduct stock from the batch closest to its expiration date.
-- **Analytics dashboard:** Revenue trend charts, top-selling products, and role-aware KPIs (Admin/Pharmacist see full reports; Cashier sees inventory alerts only).
 - **FEFO transparency:** Every sale shows exactly which batches were used and their expiration dates, so the allocation logic is visible, not just enforced silently.
+- **Sales history:** Browsable, filterable log of past sales with per-sale batch detail.
+- **Analytics dashboard:** Revenue trend charts, top-selling products, and role-aware KPIs (Admin/Pharmacist see full reports; Cashier sees inventory alerts only).
+- **User management:** Admins can create accounts, edit names/roles, reset passwords, and activate/deactivate users (self-deactivation is blocked to prevent accidental lockout).
 - **Traceability:** Any stock change generates an audited movement record (who, what, when, why), attributed to the authenticated user by name and role.
 - **Reports:** Sales by period, upcoming expiring products, and low stock alerts.
 - **RBAC:** Administrator (full access), pharmacist (inventory + sales), and cashier (sales only).
-- **Product search and dual views:** Table view for scanning inventory density, card view for browsing.
+- **Product search and dual views:** Sortable table view for scanning inventory density, card view for browsing.
 
 ## Features by Role
 
@@ -37,6 +39,7 @@ Full-stack pharmacy inventory management system featuring batch and expiration d
 | Create/Edit Products | ✅ | ✅ | ❌ |
 | Receive Stock (Batches) | ✅ | ✅ | ❌ |
 | Create Sales | ✅ | ✅ | ✅ |
+| View Sales History | ✅ | ✅ | ✅ |
 | View Reports | ✅ | ✅ | ❌ |
 | Manage Users | ✅ | ❌ | ❌ |
 
@@ -51,13 +54,15 @@ pharmacy-inventory/
 │   │   ├── BatchesController.cs
 │   │   ├── ReportsController.cs
 │   │   ├── CategoriesController.cs
-│   │   └── SuppliersController.cs
+│   │   ├── SuppliersController.cs
+│   │   └── UsersController.cs
 │   ├── Services/              # Business Logic
 │   │   ├── AuthService.cs
 │   │   ├── ProductService.cs
 │   │   ├── SalesService.cs (FEFO logic, transactional)
 │   │   ├── BatchService.cs
-│   │   └── ReportsService.cs
+│   │   ├── ReportsService.cs
+│   │   └── UserService.cs
 │   ├── Repositories/          # Data Access Layer
 │   │   ├── GenericRepository.cs
 │   │   ├── ProductRepository.cs
@@ -79,9 +84,9 @@ pharmacy-inventory/
 ├── PharmacyInventory.Tests/   # Unit Tests (xUnit)
 ├── client/                    # React + Vite Frontend
 │   ├── src/
-│   │   ├── pages/            # Login, Dashboard, Sales, Products, Reports
-│   │   ├── components/       # Navbar, SaleResultModal
-│   │   ├── services/         # API clients (api, auth, product, sales, report)
+│   │   ├── pages/            # Login, Dashboard, Sales, SalesHistory, Products, Reports, Users
+│   │   ├── components/       # Navbar, SaleResultModal, ProductFormModal, UserFormModal, ResetPasswordModal
+│   │   ├── services/         # API clients (api, auth, product, sales, report, category, supplier, user)
 │   │   ├── context/          # Auth context
 │   │   ├── hooks/            # useAuth hook
 │   │   ├── index.css         # Design tokens (clinical palette, typography)
@@ -156,6 +161,8 @@ The login screen has one-click buttons for each role. Credentials, if entering m
 | `farmacia` | `Pharma123!` | Pharmacist |
 | `caja` | `Cashier123!` | Cashier |
 
+Additional users can be created from the Users page (Admin only) once logged in.
+
 ## API Endpoints
 
 ### Authentication
@@ -191,6 +198,14 @@ The login screen has one-click buttons for each role. Credentials, if entering m
 - `GET /api/reports/expiring-products?daysThreshold=30` — Products expiring soon
 - `GET /api/reports/stock-movements?productId=...` — Audit trail with user attribution
 
+### Users (ADMIN only)
+- `GET /api/users` — List all users
+- `GET /api/users/{id}` — Get user by ID
+- `POST /api/users` — Create a new user
+- `PUT /api/users/{id}` — Update full name and role
+- `PATCH /api/users/{id}/reset-password` — Reset a user's password
+- `PATCH /api/users/{id}/toggle-active` — Activate or deactivate a user (blocked for your own account)
+
 ## Design Decisions
 
 ### FEFO (First Expired, First Out)
@@ -200,7 +215,7 @@ When a sale is created, the system:
 3. Records each batch deduction as a separate `SaleItem`
 4. Generates a `StockMovement` entry for audit trail
 
-The frontend surfaces this directly: after checkout, a confirmation modal shows exactly which lot numbers and expiration dates were used, so the allocation logic is visible rather than a black box.
+The frontend surfaces this directly: after checkout, a confirmation modal shows exactly which lot numbers and expiration dates were used, so the allocation logic is visible rather than a black box. The same modal is reused on the Sales History page to inspect any past sale.
 
 **Example:**
 - Product "Aspirin" has 3 batches: 10 units (exp. 2026-06), 20 units (exp. 2026-09), 30 units (exp. 2026-12)
@@ -219,6 +234,9 @@ The frontend surfaces this directly: after checkout, a confirmation modal shows 
 
 ### Transactional Integrity
 Sale creation wraps stock deduction, movement logging, and the sale record in a single database transaction via `IExecutionStrategy` (required because the DbContext uses `EnableRetryOnFailure`). If any step fails — insufficient stock discovered mid-loop, a database error — the entire sale rolls back. No partial deductions, no orphaned records.
+
+### User Management Safeguards
+Deactivating a user is blocked when the target account is the requester's own — without this guard, an admin could lock themselves out of the only account able to reactivate anyone. This is enforced in `UserService`, not just hidden in the UI, so the rule holds even if called directly through the API.
 
 ### Clean Architecture
 - **Separation of Concerns:** Controllers → Services → Repositories → DbContext
@@ -264,6 +282,13 @@ dotnet test
 - **SQL Injection Prevention:** EF Core parameterized queries
 - **CORS:** Configured for localhost:5173 (frontend)
 
+## Known Limitations
+
+This is a portfolio demonstration, not a production deployment. Notable gaps by design:
+- No integration test suite exercising the full FEFO allocation flow against a real database (current tests cover unit-level logic)
+- No Docker/Compose setup for one-command local startup
+- No pagination on list endpoints (fine at demo data volumes, would need it at scale)
+
 ## License
 
 This project is for portfolio demonstration purposes. The original system was developed for a private client in 2023.
@@ -276,5 +301,5 @@ Full-stack developer | Costa Rica
 
 ---
 
-**Version:** 1.2.0-redesign (July 2026)  
+**Version:** 1.3.0-feature-complete (July 2026)  
 **Status:** Feature-complete, visually polished, production-ready architecture
