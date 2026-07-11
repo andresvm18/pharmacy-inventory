@@ -7,7 +7,7 @@ namespace PharmacyInventory.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "ADMIN,PHARMACIST")]
 public class ReportsController : ControllerBase
 {
     private readonly IReportsService _reportsService;
