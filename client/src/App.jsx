@@ -8,6 +8,7 @@ import Sales from './pages/Sales';
 import SalesHistory from './pages/SalesHistory';
 import Products from './pages/Products';
 import Reports from './pages/Reports';
+import Users from './pages/Users';
 import ProtectedRoute from './pages/ProtectedRoute';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
                       <Route path="/sales/history" element={<SalesHistory />} />
                       <Route path="/products" element={<Products />} />
                       <Route path="/reports" element={<Reports />} />
+                      <Route path="/users" element={<Users />} />
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </div>

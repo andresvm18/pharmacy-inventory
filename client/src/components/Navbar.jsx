@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/sales/history', label: 'History', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
   { to: '/products', label: 'Products', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
   { to: '/reports', label: 'Reports', roles: ['ADMIN', 'PHARMACIST'] },
+  { to: '/users', label: 'Users', roles: ['ADMIN'] },
 ];
 
 function formatRole(role) {
@@ -30,10 +31,9 @@ export default function Navbar() {
   );
 
   const linkClass = ({ isActive }) =>
-    `px-3 py-2 text-sm font-medium transition border-b-2 ${
-      isActive
-        ? 'text-clinical-700 border-clinical-600'
-        : 'text-stone-500 border-transparent hover:text-stone-900'
+    `px-3 py-2 text-sm font-medium transition border-b-2 ${isActive
+      ? 'text-clinical-700 border-clinical-600'
+      : 'text-stone-500 border-transparent hover:text-stone-900'
     }`;
 
   return (
@@ -90,10 +90,9 @@ export default function Navbar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium transition ${
-                    isActive
-                      ? 'bg-clinical-50 text-clinical-700'
-                      : 'text-stone-600 hover:bg-stone-50'
+                  `block px-3 py-2 rounded-md text-base font-medium transition ${isActive
+                    ? 'bg-clinical-50 text-clinical-700'
+                    : 'text-stone-600 hover:bg-stone-50'
                   }`
                 }
                 onClick={() => setMobileOpen(false)}
