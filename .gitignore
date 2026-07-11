@@ -1,5 +1,26 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+appsettings.json
+appsettings.*.json
+
+# Node (for client)
 node_modules/
-.env
 dist/
-*.log
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
