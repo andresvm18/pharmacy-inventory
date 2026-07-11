@@ -68,7 +68,6 @@ builder.Services.AddCors(options =>
 });
 
 // Add Swagger for API documentation
-// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
