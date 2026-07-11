@@ -1,4 +1,4 @@
-export default function SaleResultModal({ sale, onClose }) {
+export default function SaleResultModal({ sale, onClose, closeLabel = 'New sale' }) {
   if (!sale) return null;
 
   const formatDate = (dateStr) =>
@@ -88,7 +88,7 @@ export default function SaleResultModal({ sale, onClose }) {
         {/* Footer */}
         <div className="px-6 pb-6">
           <button onClick={onClose} className="btn-primary w-full py-2.5">
-            New sale
+            {closeLabel}
           </button>
         </div>
       </div>

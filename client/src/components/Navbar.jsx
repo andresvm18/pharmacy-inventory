@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
   { to: '/sales', label: 'Sales', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
+  { to: '/sales/history', label: 'History', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
   { to: '/products', label: 'Products', roles: ['ADMIN', 'PHARMACIST', 'CASHIER'] },
   { to: '/reports', label: 'Reports', roles: ['ADMIN', 'PHARMACIST'] },
 ];

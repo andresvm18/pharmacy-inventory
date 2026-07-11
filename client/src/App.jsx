@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Sales from './pages/Sales';
+import SalesHistory from './pages/SalesHistory';
 import Products from './pages/Products';
 import Reports from './pages/Reports';
 import ProtectedRoute from './pages/ProtectedRoute';
@@ -20,12 +21,13 @@ export default function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50">
+                <div className="min-h-screen bg-stone-50">
                   <Navbar />
                   <div className="max-w-7xl mx-auto p-8">
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/sales" element={<Sales />} />
+                      <Route path="/sales/history" element={<SalesHistory />} />
                       <Route path="/products" element={<Products />} />
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
