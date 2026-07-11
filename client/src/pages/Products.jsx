@@ -59,17 +59,15 @@ export default function Products() {
 
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm transition ${
-              filter === 'all' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm transition ${filter === 'all' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('low-stock')}
-            className={`px-4 py-2 rounded-lg text-sm transition ${
-              filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm transition ${filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             Low Stock
           </button>
@@ -78,18 +76,16 @@ export default function Products() {
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setView('table')}
-              className={`px-3 py-1.5 rounded-md text-sm transition ${
-                view === 'table' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
-              }`}
+              className={`px-3 py-1.5 rounded-md text-sm transition ${view === 'table' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
+                }`}
               aria-label="Table view"
             >
               ☰
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`px-3 py-1.5 rounded-md text-sm transition ${
-                view === 'cards' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
-              }`}
+              className={`px-3 py-1.5 rounded-md text-sm transition ${view === 'cards' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
+                }`}
               aria-label="Card view"
             >
               ▦
@@ -130,9 +126,8 @@ function StockBar({ available, min }) {
       </div>
       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
-            isLow ? 'bg-red-500' : 'bg-pharmacy-500'
-          }`}
+          className={`h-full rounded-full transition-all ${isLow ? 'bg-red-500' : 'bg-pharmacy-500'
+            }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -181,7 +176,7 @@ function ProductsTable({ products }) {
                     </span>
                   ) : (
                     <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                      OK
+                      Ok
                     </span>
                   )}
                   {product.stockExpired > 0 && (
@@ -203,15 +198,15 @@ function ProductsCards({ products }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {products.map((product) => (
-        <div key={product.id} className="card">
+        <div key={product.id} className="card flex flex-col">
           <div className="flex justify-between items-start mb-2">
             <div>
               <h3 className="text-lg font-bold">{product.name}</h3>
               <p className="text-sm text-gray-600 font-mono">{product.sku}</p>
             </div>
             {product.stockAvailable < product.minStock && (
-              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
-                LOW STOCK
+              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+                Low Stock
               </span>
             )}
           </div>
@@ -239,13 +234,15 @@ function ProductsCards({ products }) {
             )}
           </div>
 
-          <StockBar available={product.stockAvailable} min={product.minStock} />
+          <div className="mt-auto space-y-3">
+            <StockBar available={product.stockAvailable} min={product.minStock} />
 
-          {product.requiresRx && (
-            <span className="mt-3 block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded text-center">
-              ⚕️ Requires Rx
-            </span>
-          )}
+            {product.requiresRx && (
+              <span className="block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded text-center">
+                ⚕️ Requires Rx
+              </span>
+            )}
+          </div>
         </div>
       ))}
     </div>

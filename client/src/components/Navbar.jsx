@@ -9,6 +9,11 @@ const NAV_ITEMS = [
   { to: '/reports', label: 'Reports', roles: ['ADMIN', 'PHARMACIST'] },
 ];
 
+function formatRole(role) {
+  if (!role) return '';
+  return role.charAt(0) + role.slice(1).toLowerCase();
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -24,10 +29,9 @@ export default function Navbar() {
   );
 
   const linkClass = ({ isActive }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition ${
-      isActive
-        ? 'bg-pharmacy-700 text-white'
-        : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
+    `px-3 py-2 rounded-md text-sm font-medium transition ${isActive
+      ? 'bg-pharmacy-700 text-white'
+      : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
     }`;
 
   return (
@@ -54,11 +58,8 @@ export default function Navbar() {
 
           {/* User info + logout (desktop) */}
           <div className="hidden md:flex items-center space-x-4">
-            <span className="text-sm">
-              {user?.username}{' '}
-              <span className="text-xs bg-pharmacy-700 px-2 py-1 rounded">
-                {user?.role}
-              </span>
+            <span className="text-sm text-pharmacy-50">
+              {user?.fullName} <span className="text-pharmacy-100">({formatRole(user?.role)})</span>
             </span>
             <button onClick={handleLogout} className="btn-secondary text-sm">
               Logout
@@ -90,10 +91,9 @@ export default function Navbar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium transition ${
-                    isActive
-                      ? 'bg-pharmacy-700 text-white'
-                      : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
+                  `block px-3 py-2 rounded-md text-base font-medium transition ${isActive
+                    ? 'bg-pharmacy-700 text-white'
+                    : 'text-pharmacy-50 hover:bg-pharmacy-700/60'
                   }`
                 }
                 onClick={() => setMobileOpen(false)}
@@ -102,11 +102,8 @@ export default function Navbar() {
               </NavLink>
             ))}
             <div className="border-t border-pharmacy-500 pt-3 mt-3 flex items-center justify-between px-3">
-              <span className="text-sm">
-                {user?.username}{' '}
-                <span className="text-xs bg-pharmacy-700 px-2 py-1 rounded">
-                  {user?.role}
-                </span>
+              <span className="text-sm text-pharmacy-50">
+                {user?.fullName} <span className="text-pharmacy-100">({formatRole(user?.role)})</span>
               </span>
               <button onClick={handleLogout} className="btn-secondary text-sm">
                 Logout
