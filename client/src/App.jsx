@@ -1,7 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Sales from './pages/Sales';
+import Products from './pages/Products';
+import Reports from './pages/Reports';
 import ProtectedRoute from './pages/ProtectedRoute';
 
 export default function App() {
@@ -11,16 +15,24 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
-            path="/dashboard"
+            path="/*"
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50 p-8">
-                  <Dashboard />
+                <div className="min-h-screen bg-gray-50">
+                  <Navbar />
+                  <div className="max-w-7xl mx-auto p-8">
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/sales" element={<Sales />} />
+                      <Route path="/products" element={<Products />} />
+                      <Route path="/reports" element={<Reports />} />
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </div>
                 </div>
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
