@@ -1,0 +1,46 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build API project
+      run: dotnet build PharmacyInventory.API/PharmacyInventory.API.csproj --configuration Release --no-restore
+
+    - name: Build Test project
+      run: dotnet build PharmacyInventory.Tests/PharmacyInventory.Tests.csproj --configuration Release --no-restore
+
+    - name: Run Unit Tests
+      run: dotnet test PharmacyInventory.Tests/PharmacyInventory.Tests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: '**/test-results.trx'
+
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: 'xUnit Test Results'
+        path: '**/test-results.trx'
+        reporter: 'dotnet trx'
