@@ -104,10 +104,10 @@ git clone https://github.com/andresvm18/pharmacy-inventory.git
 cd pharmacy-inventory
 
 # 2. Create SQL Server database
-sqlcmd -S .\MSSQLSERVER01 -i db/schema.sql
+sqlcmd -S .\MSSQLSERVER01 -f 65001 -i db/schema.sql
 
 # 3. Load seed data
-sqlcmd -S .\MSSQLSERVER01 -i db/seed.sql
+sqlcmd -S .\MSSQLSERVER01 -f 65001 -i db/seed.sql
 
 # 4. Navigate to API
 cd PharmacyInventory.API
