@@ -4,6 +4,7 @@ using System.Text;
 using PharmacyInventory.API.Data;
 using PharmacyInventory.API.Services;
 using PharmacyInventory.API.Repositories;
+using PharmacyInventory.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,6 +98,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.UseGlobalExceptionHandler();
 
 // Apply pending migrations automatically
 using (var scope = app.Services.CreateScope())
