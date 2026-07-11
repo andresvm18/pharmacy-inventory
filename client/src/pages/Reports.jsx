@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { Calendar } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
@@ -13,6 +14,11 @@ const PRESETS = [
 ];
 
 const toISODate = (date) => date.toISOString().split('T')[0];
+
+function formatRole(role) {
+  if (!role) return '';
+  return role.charAt(0) + role.slice(1).toLowerCase();
+}
 
 export default function Reports() {
   const [revenue, setRevenue] = useState(null);
@@ -83,7 +89,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Reports & Analytics</h1>
+      <h1 className="font-display text-3xl font-semibold text-stone-900">Reports & analytics</h1>
 
       {/* Date Range Filter */}
       <div className="card">
@@ -92,9 +98,8 @@ export default function Reports() {
             <button
               key={preset.label}
               onClick={() => applyPreset(preset)}
-              className={`px-4 py-2 rounded-lg text-sm transition ${
-                activePreset === preset.label ? 'btn-primary' : 'btn-secondary'
-              }`}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${activePreset === preset.label ? 'btn-primary' : 'btn-secondary'
+                }`}
             >
               {preset.label}
             </button>
@@ -103,7 +108,9 @@ export default function Reports() {
 
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium mb-1">Start Date</label>
+            <label className="block text-xs font-medium text-stone-600 uppercase tracking-wide mb-2">
+              Start date
+            </label>
             <input
               type="date"
               value={startDate}
@@ -112,7 +119,9 @@ export default function Reports() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">End Date</label>
+            <label className="block text-xs font-medium text-stone-600 uppercase tracking-wide mb-2">
+              End date
+            </label>
             <input
               type="date"
               value={endDate}
@@ -123,7 +132,7 @@ export default function Reports() {
           <button
             onClick={applyCustomRange}
             disabled={loading}
-            className="btn-primary"
+            className="btn-primary py-2"
           >
             {loading ? 'Loading...' : 'Apply'}
           </button>
@@ -133,14 +142,14 @@ export default function Reports() {
       {/* KPI Cards */}
       {revenue && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <KpiCard label="Total Sales" value={revenue.totalSales} />
+          <KpiCard label="Total sales" value={revenue.totalSales} />
           <KpiCard
-            label="Total Revenue"
+            label="Total revenue"
             value={`₡${revenue.totalRevenue?.toLocaleString()}`}
           />
-          <KpiCard label="Items Sold" value={revenue.totalItemsSold} />
+          <KpiCard label="Items sold" value={revenue.totalItemsSold} />
           <KpiCard
-            label="Avg Order Value"
+            label="Avg order value"
             value={`₡${revenue.averageOrderValue?.toFixed(2)}`}
           />
         </div>
@@ -148,49 +157,62 @@ export default function Reports() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue trend */}
         <div className="card">
-          <h2 className="text-xl font-bold mb-4">Revenue Trend</h2>
+          <h2 className="text-sm font-medium text-stone-900 mb-4">Revenue trend</h2>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={dailyRevenue}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 11, fontFamily: 'JetBrains Mono', fill: '#78716C' }}
+                axisLine={{ stroke: '#E7E5E4' }}
+                tickLine={false}
+              />
               <YAxis
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 11, fontFamily: 'JetBrains Mono', fill: '#78716C' }}
                 tickFormatter={(v) => `₡${v.toLocaleString()}`}
+                axisLine={false}
+                tickLine={false}
                 width={80}
               />
               <Tooltip
                 formatter={(value) => [`₡${value.toLocaleString()}`, 'Revenue']}
+                contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: '#E7E5E4' }}
               />
               <Line
                 type="monotone"
                 dataKey="totalRevenue"
-                stroke="#16a34a"
+                stroke="#0F5D52"
                 strokeWidth={2}
-                dot={{ r: 3 }}
+                dot={{ r: 3, fill: '#0F5D52' }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Top products */}
         <div className="card">
-          <h2 className="text-xl font-bold mb-4">Top Selling Products</h2>
+          <h2 className="text-sm font-medium text-stone-900 mb-4">Top selling products</h2>
           {topProducts.length === 0 ? (
-            <p className="text-gray-500 text-center py-20">
+            <p className="text-sm text-stone-400 text-center py-20">
               No sales in this period
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={topProducts} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" horizontal={false} />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 11, fontFamily: 'JetBrains Mono', fill: '#78716C' }}
+                  axisLine={{ stroke: '#E7E5E4' }}
+                  tickLine={false}
+                />
                 <YAxis
                   type="category"
                   dataKey="sku"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 11, fontFamily: 'JetBrains Mono', fill: '#78716C' }}
+                  axisLine={false}
+                  tickLine={false}
                   width={70}
                 />
                 <Tooltip
@@ -200,8 +222,9 @@ export default function Reports() {
                   labelFormatter={(sku) =>
                     topProducts.find((p) => p.sku === sku)?.name ?? sku
                   }
+                  contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: '#E7E5E4' }}
                 />
-                <Bar dataKey="unitsSold" fill="#16a34a" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="unitsSold" fill="#0F5D52" radius={[0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -210,28 +233,32 @@ export default function Reports() {
 
       {/* Expiring Products */}
       <div className="card">
-        <h2 className="text-2xl font-bold mb-4">⚠️ Products Expiring Soon (30 days)</h2>
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-4 h-4 text-amber-600" strokeWidth={2} />
+          <h2 className="text-sm font-medium text-stone-900">Products expiring soon</h2>
+          <span className="text-xs text-stone-400">30 days</span>
+        </div>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {expiring.length === 0 ? (
-            <p className="text-gray-600">No products expiring soon</p>
+            <p className="text-sm text-stone-500">No products expiring soon</p>
           ) : (
             expiring.map((item) => (
               <div
                 key={item.batchId}
-                className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg"
+                className="flex justify-between items-center py-2 px-3 bg-amber-50 rounded-md border border-amber-100"
               >
                 <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-gray-600">
-                    Batch: {item.lotNumber} | Qty: {item.quantity}
+                  <p className="text-sm font-medium text-stone-900">{item.name}</p>
+                  <p className="text-xs text-stone-500 data-num">
+                    {item.lotNumber} · qty {item.quantity}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className={`font-medium ${item.daysUntilExpiry <= 7 ? 'text-red-600' : ''}`}>
-                    {item.daysUntilExpiry} days
+                  <p className={`text-sm font-medium data-num ${item.daysUntilExpiry <= 7 ? 'text-red-700' : 'text-amber-700'}`}>
+                    {item.daysUntilExpiry}d
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Value: ₡{item.totalValue?.toLocaleString()}
+                  <p className="text-xs text-stone-500 data-num">
+                    ₡{item.totalValue?.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -241,35 +268,38 @@ export default function Reports() {
       </div>
 
       {/* Stock Movements */}
-      <div className="card">
-        <h2 className="text-2xl font-bold mb-4">📊 Recent Stock Movements</h2>
+      <div className="card p-0 overflow-hidden">
+        <h2 className="text-sm font-medium text-stone-900 px-6 py-4 border-b border-stone-200">
+          Recent stock movements
+        </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
-                <th className="px-4 py-2 text-left">Product</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-left">Qty</th>
-                <th className="px-4 py-2 text-left">Reason</th>
-                <th className="px-4 py-2 text-left">User</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Product</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Type</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Qty</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Reason</th>
+                <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">User</th>
               </tr>
             </thead>
             <tbody>
               {movements.map((mov) => (
-                <tr key={mov.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium">{mov.productName}</td>
-                  <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      mov.type === 'SALE' ? 'bg-red-100 text-red-800' :
-                      mov.type === 'PURCHASE' ? 'bg-green-100 text-green-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
+                <tr key={mov.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                  <td className="px-4 py-3 font-medium text-stone-900">{mov.productName}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${mov.type === 'SALE' ? 'bg-red-50 text-red-700' :
+                        mov.type === 'PURCHASE' ? 'bg-clinical-50 text-clinical-700' :
+                          'bg-stone-100 text-stone-700'
+                      }`}>
                       {mov.type}
                     </span>
                   </td>
-                  <td className="px-4 py-2 font-medium">{mov.quantity}</td>
-                  <td className="px-4 py-2 text-gray-600">{mov.reason}</td>
-                  <td className="px-4 py-2">{mov.username}</td>
+                  <td className="px-4 py-3 font-medium text-stone-900 data-num">{mov.quantity}</td>
+                  <td className="px-4 py-3 text-stone-500">{mov.reason}</td>
+                  <td className="px-4 py-3 text-stone-600">
+                    {mov.userFullName} <span className="text-stone-400 text-xs">({formatRole(mov.userRole)})</span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -283,8 +313,8 @@ export default function Reports() {
 function KpiCard({ label, value }) {
   return (
     <div className="card">
-      <p className="text-gray-600 text-sm">{label}</p>
-      <p className="text-3xl font-bold text-pharmacy-600">{value}</p>
+      <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-semibold text-stone-900 data-num mt-1">{value}</p>
     </div>
   );
 }
