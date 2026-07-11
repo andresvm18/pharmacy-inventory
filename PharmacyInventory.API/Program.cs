@@ -19,6 +19,7 @@ builder.Services.AddDbContext<PharmacyDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
 
 // Add repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
