@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace PharmacyInventory.API.Services;
 
@@ -48,7 +48,7 @@ public class AuthService : IAuthService
             }
 
             // Verify password using bcrypt
-            bool isPasswordValid = BCrypt.VerifyPassword(password, user.PasswordHash);
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             if (!isPasswordValid)
             {
                 _logger.LogWarning($"Failed login attempt for user: {username}");
