@@ -174,6 +174,7 @@ public class SalesService : ISalesService
             Id = sale.Id,
             UserId = sale.UserId,
             Username = sale.User?.Username ?? "Unknown",
+            UserFullName = sale.User?.FullName ?? "Unknown",
             Total = sale.Total,
             CreatedAt = sale.CreatedAt
         };
