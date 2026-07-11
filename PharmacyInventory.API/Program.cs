@@ -13,6 +13,9 @@ builder.Services.AddDbContext<PharmacyDbContext>(options =>
     )
 );
 
+// Add services
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 // Add JWT authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
@@ -54,6 +57,7 @@ builder.Services.AddCors(options =>
 // Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
