@@ -1,27 +1,46 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { List, LayoutGrid, Syringe } from 'lucide-react';
+import { List, LayoutGrid, Syringe, Plus, Pencil } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { productService } from '../services/productService';
+import { categoryService } from '../services/categoryService';
+import { supplierService } from '../services/supplierService';
+import ProductFormModal from '../components/ProductFormModal';
 
 export default function Products() {
+  const { user } = useAuth();
+  const canManage = ['ADMIN', 'PHARMACIST'].includes(user?.role);
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [view, setView] = useState('table');
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const fetchAll = async () => {
+    try {
+      const requests = [productService.getAll()];
+      if (canManage) {
+        requests.push(categoryService.getAll(), supplierService.getAll());
+      }
+      const [productsData, categoriesData, suppliersData] = await Promise.all(requests);
+      setProducts(productsData);
+      if (categoriesData) setCategories(categoriesData);
+      if (suppliersData) setSuppliers(suppliersData);
+    } catch {
+      toast.error('Error loading products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await productService.getAll();
-        setProducts(data);
-      } catch {
-        toast.error('Error loading products');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
+    fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -41,6 +60,16 @@ export default function Products() {
 
     return result;
   }, [products, filter, search]);
+
+  const openCreate = () => {
+    setEditingProduct(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (product) => {
+    setEditingProduct(product);
+    setShowForm(true);
+  };
 
   if (loading) return <ProductsSkeleton />;
 
@@ -95,6 +124,13 @@ export default function Products() {
               <LayoutGrid className="w-4 h-4" strokeWidth={2} />
             </button>
           </div>
+
+          {canManage && (
+            <button onClick={openCreate} className="btn-primary text-sm flex items-center gap-1.5">
+              <Plus className="w-4 h-4" strokeWidth={2} />
+              Add product
+            </button>
+          )}
         </div>
       </div>
 
@@ -107,9 +143,19 @@ export default function Products() {
           No products match your filters
         </div>
       ) : view === 'table' ? (
-        <ProductsTable products={filteredProducts} />
+        <ProductsTable products={filteredProducts} canManage={canManage} onEdit={openEdit} />
       ) : (
-        <ProductsCards products={filteredProducts} />
+        <ProductsCards products={filteredProducts} canManage={canManage} onEdit={openEdit} />
+      )}
+
+      {showForm && (
+        <ProductFormModal
+          product={editingProduct}
+          categories={categories}
+          suppliers={suppliers}
+          onClose={() => setShowForm(false)}
+          onSaved={fetchAll}
+        />
       )}
     </div>
   );
@@ -140,7 +186,7 @@ function StockBar({ available, min }) {
   );
 }
 
-function ProductsTable({ products }) {
+function ProductsTable({ products, canManage, onEdit }) {
   return (
     <div className="card p-0 overflow-hidden">
       <div className="overflow-x-auto">
@@ -153,6 +199,7 @@ function ProductsTable({ products }) {
               <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Price</th>
               <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide w-40">Stock</th>
               <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
+              {canManage && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
           <tbody>
@@ -192,6 +239,17 @@ function ProductsTable({ products }) {
                     </span>
                   )}
                 </td>
+                {canManage && (
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => onEdit(product)}
+                      className="text-stone-400 hover:text-clinical-700 transition"
+                      aria-label={`Edit ${product.name}`}
+                    >
+                      <Pencil className="w-4 h-4" strokeWidth={2} />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -201,7 +259,7 @@ function ProductsTable({ products }) {
   );
 }
 
-function ProductsCards({ products }) {
+function ProductsCards({ products, canManage, onEdit }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {products.map((product) => (
@@ -211,11 +269,22 @@ function ProductsCards({ products }) {
               <h3 className="font-medium text-stone-900">{product.name}</h3>
               <p className="text-xs text-stone-400 data-num">{product.sku}</p>
             </div>
-            {product.stockAvailable < product.minStock && (
-              <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap">
-                Low stock
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {product.stockAvailable < product.minStock && (
+                <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                  Low stock
+                </span>
+              )}
+              {canManage && (
+                <button
+                  onClick={() => onEdit(product)}
+                  className="text-stone-400 hover:text-clinical-700 transition"
+                  aria-label={`Edit ${product.name}`}
+                >
+                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+              )}
+            </div>
           </div>
 
           <p className="text-sm text-stone-500 mb-3">{product.description}</p>
