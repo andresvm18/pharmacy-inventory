@@ -31,10 +31,14 @@ public class BatchesController : ControllerBase
     {
         try
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized(new ErrorResponse { Message = "Invalid user context" });
+
             if (!ModelState.IsValid)
                 return BadRequest(new ErrorResponse { Message = "Invalid batch data" });
 
-            var batch = await _batchService.CreateBatchAsync(request);
+            var batch = await _batchService.CreateBatchAsync(userId, request);
             return CreatedAtAction(nameof(GetBatchById), new { id = batch.Id }, batch);
         }
         catch (InvalidOperationException ex)

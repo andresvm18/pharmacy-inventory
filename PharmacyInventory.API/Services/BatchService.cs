@@ -8,7 +8,7 @@ namespace PharmacyInventory.API.Services;
 
 public interface IBatchService
 {
-    Task<BatchResponse> CreateBatchAsync(CreateBatchRequest request);
+    Task<BatchResponse> CreateBatchAsync(int userId, CreateBatchRequest request);
     Task<BatchResponse?> GetBatchByIdAsync(int batchId);
     Task<IEnumerable<BatchResponse>> GetBatchesByProductAsync(int productId);
     Task<bool> AdjustStockAsync(int batchId, int userId, AdjustStockRequest request);
@@ -35,7 +35,7 @@ public class BatchService : IBatchService
 
     /// Create a new batch (receive stock from supplier).
     /// Records the initial PURCHASE stock movement for audit.
-    public async Task<BatchResponse> CreateBatchAsync(CreateBatchRequest request)
+    public async Task<BatchResponse> CreateBatchAsync(int userId, CreateBatchRequest request)
     {
         var product = await _productRepository.GetByIdAsync(request.ProductId);
         if (product == null)
