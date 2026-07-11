@@ -20,4 +20,18 @@ export const productService = {
     const response = await api.get(`/products/category/${categoryId}`);
     return response.data;
   },
+
+  create: async (data) => {
+    const response = await api.post('/products', data);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/products/${id}`, data);
+    return response.data;
+  },
+
+  deactivate: async (id) => {
+    await api.delete(`/products/${id}`);
+  },
 };
