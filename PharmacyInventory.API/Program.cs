@@ -20,11 +20,13 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IReportsService, ReportsService>();
+builder.Services.AddScoped<IBatchService, BatchService>();
 
 // Add repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ISalesRepository, SalesRepository>();
+builder.Services.AddScoped<IBatchRepository, BatchRepository>();
 
 // Add JWT authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
