@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
+import { List, LayoutGrid, Syringe } from 'lucide-react';
 import { productService } from '../services/productService';
 
 export default function Products() {
@@ -7,7 +8,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [view, setView] = useState('table'); // 'table' | 'cards'
+  const [view, setView] = useState('table');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -46,7 +47,7 @@ export default function Products() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-4xl font-bold">Products</h1>
+        <h1 className="font-display text-3xl font-semibold text-stone-900">Products</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           <input
@@ -59,47 +60,50 @@ export default function Products() {
 
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm transition ${filter === 'all' ? 'btn-primary' : 'btn-secondary'
-              }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+              filter === 'all' ? 'btn-primary' : 'btn-secondary'
+            }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('low-stock')}
-            className={`px-4 py-2 rounded-lg text-sm transition ${filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
-              }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+              filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
+            }`}
           >
-            Low Stock
+            Low stock
           </button>
 
-          {/* View toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-stone-100 rounded-md p-1">
             <button
               onClick={() => setView('table')}
-              className={`px-3 py-1.5 rounded-md text-sm transition ${view === 'table' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
-                }`}
+              className={`p-1.5 rounded transition ${
+                view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+              }`}
               aria-label="Table view"
             >
-              ☰
+              <List className="w-4 h-4" strokeWidth={2} />
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`px-3 py-1.5 rounded-md text-sm transition ${view === 'cards' ? 'bg-white shadow text-pharmacy-700' : 'text-gray-500'
-                }`}
+              className={`p-1.5 rounded transition ${
+                view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+              }`}
               aria-label="Card view"
             >
-              ▦
+              <LayoutGrid className="w-4 h-4" strokeWidth={2} />
             </button>
           </div>
         </div>
       </div>
 
-      <p className="text-sm text-gray-500">
+      <p className="text-xs text-stone-400 data-num">
         {filteredProducts.length} of {products.length} products
       </p>
 
       {filteredProducts.length === 0 ? (
-        <div className="card text-center py-12 text-gray-600">
+        <div className="card text-center py-12 text-sm text-stone-500">
           No products match your filters
         </div>
       ) : view === 'table' ? (
@@ -118,16 +122,17 @@ function StockBar({ available, min }) {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between text-xs mb-1">
-        <span className={isLow ? 'text-red-600 font-medium' : 'text-gray-600'}>
+      <div className="flex justify-between text-xs mb-1 data-num">
+        <span className={isLow ? 'text-red-700 font-medium' : 'text-stone-600'}>
           {available}
         </span>
-        <span className="text-gray-400">min {min}</span>
+        <span className="text-stone-400">min {min}</span>
       </div>
-      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-[3px] bg-stone-200 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${isLow ? 'bg-red-500' : 'bg-pharmacy-500'
-            }`}
+          className={`h-full rounded-full transition-all ${
+            isLow ? 'bg-red-600' : 'bg-clinical-600'
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -140,30 +145,32 @@ function ProductsTable({ products }) {
     <div className="card p-0 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">SKU</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Category</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Price</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600 w-40">Stock</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">SKU</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Name</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Category</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Price</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide w-40">Stock</th>
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs text-gray-500">
+              <tr key={product.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                <td className="px-4 py-3 text-xs text-stone-400 data-num">
                   {product.sku}
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium">{product.name}</p>
+                  <p className="font-medium text-stone-900">{product.name}</p>
                   {product.requiresRx && (
-                    <span className="text-xs text-blue-600">⚕️ Requires Rx</span>
+                    <span className="inline-flex items-center gap-1 text-xs text-clinical-700 mt-0.5">
+                      <Syringe className="w-3 h-3" strokeWidth={2} /> Requires Rx
+                    </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-600">{product.categoryName}</td>
-                <td className="px-4 py-3 font-medium">
+                <td className="px-4 py-3 text-stone-600">{product.categoryName}</td>
+                <td className="px-4 py-3 font-medium text-stone-900 data-num">
                   ₡{product.unitPrice.toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
@@ -171,16 +178,16 @@ function ProductsTable({ products }) {
                 </td>
                 <td className="px-4 py-3">
                   {product.stockAvailable < product.minStock ? (
-                    <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
-                      Low Stock
+                    <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded font-medium">
+                      Low stock
                     </span>
                   ) : (
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                      Ok
+                    <span className="bg-clinical-50 text-clinical-700 text-xs px-2 py-0.5 rounded font-medium">
+                      OK
                     </span>
                   )}
                   {product.stockExpired > 0 && (
-                    <span className="block text-xs text-red-500 mt-1">
+                    <span className="block text-xs text-red-500 mt-1 data-num">
                       {product.stockExpired} expired
                     </span>
                   )}
@@ -201,35 +208,35 @@ function ProductsCards({ products }) {
         <div key={product.id} className="card flex flex-col">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h3 className="text-lg font-bold">{product.name}</h3>
-              <p className="text-sm text-gray-600 font-mono">{product.sku}</p>
+              <h3 className="font-medium text-stone-900">{product.name}</h3>
+              <p className="text-xs text-stone-400 data-num">{product.sku}</p>
             </div>
             {product.stockAvailable < product.minStock && (
-              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
-                Low Stock
+              <span className="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                Low stock
               </span>
             )}
           </div>
 
-          <p className="text-sm text-gray-600 mb-3">{product.description}</p>
+          <p className="text-sm text-stone-500 mb-3">{product.description}</p>
 
-          <div className="space-y-2 text-sm mb-4">
+          <div className="space-y-1.5 text-sm mb-4">
             <div className="flex justify-between">
-              <span className="text-gray-600">Category:</span>
-              <span className="font-medium">{product.categoryName}</span>
+              <span className="text-stone-500">Category</span>
+              <span className="font-medium text-stone-900">{product.categoryName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Supplier:</span>
-              <span className="font-medium">{product.supplierName}</span>
+              <span className="text-stone-500">Supplier</span>
+              <span className="font-medium text-stone-900">{product.supplierName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Price:</span>
-              <span className="font-medium">₡{product.unitPrice.toLocaleString()}</span>
+              <span className="text-stone-500">Price</span>
+              <span className="font-medium text-stone-900 data-num">₡{product.unitPrice.toLocaleString()}</span>
             </div>
             {product.stockExpired > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Expired:</span>
-                <span className="font-medium text-red-600">{product.stockExpired}</span>
+                <span className="text-stone-500">Expired</span>
+                <span className="font-medium text-red-600 data-num">{product.stockExpired}</span>
               </div>
             )}
           </div>
@@ -238,8 +245,8 @@ function ProductsCards({ products }) {
             <StockBar available={product.stockAvailable} min={product.minStock} />
 
             {product.requiresRx && (
-              <span className="block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded text-center">
-                ⚕️ Requires Rx
+              <span className="flex items-center justify-center gap-1 bg-clinical-50 text-clinical-700 text-xs px-2 py-1 rounded">
+                <Syringe className="w-3 h-3" strokeWidth={2} /> Requires Rx
               </span>
             )}
           </div>
@@ -252,10 +259,10 @@ function ProductsCards({ products }) {
 function ProductsSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-10 bg-gray-200 rounded w-40"></div>
+      <div className="h-9 bg-stone-200 rounded w-40"></div>
       <div className="card">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-14 bg-gray-100 rounded-lg mb-2"></div>
+          <div key={i} className="h-12 bg-stone-100 rounded-md mb-2"></div>
         ))}
       </div>
     </div>
