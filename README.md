@@ -13,12 +13,16 @@ Full-stack pharmacy inventory management system featuring batch and expiration d
 - **Authentication:** JWT tokens + RBAC (3 roles)
 - **Testing:** xUnit + Moq
 - **CI/CD:** GitHub Actions
+- **Charts:** Recharts (revenue trends, top products)
+- **Notifications:** Sonner (toast notifications)
 
 ## Features
 
 - **Product, category, and supplier management**
 - **Batch-based inventory:** Each product is split into batches, each with a batch number, expiration date, and quantity. Total stock is a derived value.
 - **FEFO-driven sales** (*first expired, first out*): Sales automatically deduct stock from the batch closest to its expiration date.
+- **Analytics dashboard:** Revenue trend charts, top-selling products, and role-aware KPIs (Admin/Pharmacist see full reports; Cashier sees inventory alerts only).
+- **FEFO transparency:** Every sale shows exactly which batches were used and their expiration dates, so the allocation logic is visible, not just enforced silently.
 - **Traceability:** Any stock change generates an audited movement record (who, what, when, why).
 - **Reports:** Sales by period, upcoming expiring products, and low stock alerts.
 - **RBAC:** Administrator (full access), pharmacist (inventory + sales), and cashier (sales only).
@@ -199,6 +203,9 @@ When a sale is created, the system:
 
 ### Immutable Audit Trail
 - **Stock movements are append-only.** Corrections are made via adjustment movements (type = `ADJUSTMENT`) rather than editing existing records. This preserves the complete audit trail.
+
+### Transactional Integrity
+Sale creation wraps stock deduction, movement logging, and the sale record in a single database transaction via `IExecutionStrategy` (required because the DbContext uses `EnableRetryOnFailure`). If any step fails — insufficient stock discovered mid-loop, a database error — the entire sale rolls back. No partial deductions, no orphaned records.
 
 ### Clean Architecture
 - **Separation of Concerns:** Controllers → Services → Repositories → DbContext
