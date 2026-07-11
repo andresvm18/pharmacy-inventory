@@ -36,11 +36,3 @@ jobs:
       with:
         name: test-results
         path: '**/test-results.trx'
-
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
-      with:
-        name: 'xUnit Test Results'
-        path: '**/test-results.trx'
-        reporter: 'dotnet trx'
