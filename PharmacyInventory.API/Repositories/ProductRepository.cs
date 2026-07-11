@@ -41,6 +41,8 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
   /// Get products where total available stock is below MinStock threshold
   public async Task<IEnumerable<Product>> GetLowStockAsync()
   {
+    var today = DateTime.Now.Date;
+    
     var products = await _dbContext.Products
         .Where(p => p.IsActive)
         .Include(p => p.Batches)
@@ -48,8 +50,12 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
 
     // Filter in memory: calculate stock per product and check against MinStock
     return products.Where(p =>
-        p.Batches
-            .Where(b => b.ExpiryDate >= DateTime.Now.Date)
-            .Sum(b => b.Quantity) < p.MinStock);
+    {
+      var availableStock = p.Batches
+          .Where(b => b.ExpiryDate >= today)
+          .Sum(b => (long?)b.Quantity) ?? 0;
+
+      return availableStock < p.MinStock;
+    }).ToList();
   }
 }

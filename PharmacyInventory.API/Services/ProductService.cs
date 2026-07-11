@@ -43,14 +43,26 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductResponse>> GetAllActiveProductsAsync()
     {
-        var products = await _productRepository.FindAsync(p => p.IsActive);
+        var products = await _dbContext.Products
+            .Where(p => p.IsActive)
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .Include(p => p.Batches)
+            .ToListAsync();
+
         return await MapToResponsesAsync(products);
     }
 
     public async Task<ProductResponse?> GetProductByIdAsync(int id)
     {
-        var product = await _productRepository.GetByIdAsync(id);
-        if (product == null || !product.IsActive)
+        var product = await _dbContext.Products
+            .Where(p => p.Id == id && p.IsActive)
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .Include(p => p.Batches)
+            .FirstOrDefaultAsync();
+
+        if (product == null)
             return null;
 
         return await MapToResponseAsync(product);
