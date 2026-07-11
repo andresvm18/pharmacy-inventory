@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AlertTriangle, Clock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { reportService } from '../services/reportService';
 import { productService } from '../services/productService';
@@ -45,55 +46,51 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold">Dashboard</h1>
-        <p className="text-gray-600">Welcome, {user?.fullName}!</p>
+      <div className="flex justify-between items-baseline">
+        <h1 className="text-3xl font-semibold text-stone-900">Dashboard</h1>
+        <p className="text-sm text-stone-500">Welcome, {user?.fullName}</p>
       </div>
 
-      {/* KPIs — only for roles that can access reports */}
       {canViewReports && revenue && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card">
-            <p className="text-gray-600 text-sm">Today's Sales</p>
-            <p className="text-3xl font-bold text-pharmacy-600">
-              {revenue.totalSales || 0}
-            </p>
-          </div>
-          <div className="card">
-            <p className="text-gray-600 text-sm">Today's Revenue</p>
-            <p className="text-3xl font-bold text-pharmacy-600">
-              ₡{revenue.totalRevenue?.toLocaleString() || 0}
-            </p>
-          </div>
-          <div className="card">
-            <p className="text-gray-600 text-sm">Avg Order Value</p>
-            <p className="text-3xl font-bold text-pharmacy-600">
-              ₡{revenue.averageOrderValue?.toFixed(2) || 0}
-            </p>
-          </div>
+          <KpiCard label="Today's sales" value={revenue.totalSales || 0} />
+          <KpiCard
+            label="Today's revenue"
+            value={`₡${(revenue.totalRevenue || 0).toLocaleString()}`}
+          />
+          <KpiCard
+            label="Avg order value"
+            value={`₡${(revenue.averageOrderValue || 0).toFixed(2)}`}
+          />
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Low Stock Alert */}
         <div className="card">
-          <h2 className="text-2xl font-bold mb-4">⚠️ Low Stock Alert</h2>
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-4 h-4 text-red-600" strokeWidth={2} />
+            <h2 className="font-display text-lg font-semibold text-stone-900">
+              Low stock
+            </h2>
+          </div>
           {lowStock.length === 0 ? (
-            <p className="text-gray-600">All products have sufficient stock!</p>
+            <p className="text-sm text-stone-500">
+              All products have sufficient stock.
+            </p>
           ) : (
             <div className="space-y-2">
               {lowStock.map((product) => (
                 <div
                   key={product.id}
-                  className="flex justify-between items-center p-3 bg-red-50 rounded-lg"
+                  className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-md border border-red-100"
                 >
                   <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-gray-600">
-                      Stock: {product.stockAvailable} / Min: {product.minStock}
+                    <p className="text-sm font-medium text-stone-900">{product.name}</p>
+                    <p className="text-xs text-stone-500 data-num">
+                      {product.stockAvailable} / min {product.minStock}
                     </p>
                   </div>
-                  <span className="text-red-600 font-bold">
+                  <span className="text-sm font-medium text-red-700 data-num">
                     {product.minStock - product.stockAvailable} needed
                   </span>
                 </div>
@@ -102,28 +99,33 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Expiring Soon — only for reports-capable roles */}
         {canViewReports && (
           <div className="card">
-            <h2 className="text-2xl font-bold mb-4">⏰ Expiring Soon (30 days)</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-4 h-4 text-amber-600" strokeWidth={2} />
+              <h2 className="font-display text-lg font-semibold text-stone-900">
+                Expiring soon
+              </h2>
+              <span className="text-xs text-stone-400">30 days</span>
+            </div>
             {expiring.length === 0 ? (
-              <p className="text-gray-600">No batches expiring soon</p>
+              <p className="text-sm text-stone-500">No batches expiring soon.</p>
             ) : (
               <div className="space-y-2">
                 {expiring.map((item) => (
                   <div
                     key={item.batchId}
-                    className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg"
+                    className="flex justify-between items-center py-2 px-3 bg-amber-50 rounded-md border border-amber-100"
                   >
                     <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-gray-600">
-                        Batch: {item.lotNumber} · Qty: {item.quantity}
+                      <p className="text-sm font-medium text-stone-900">{item.name}</p>
+                      <p className="text-xs text-stone-500 data-num">
+                        {item.lotNumber} · qty {item.quantity}
                       </p>
                     </div>
                     <span
-                      className={`font-bold ${
-                        item.daysUntilExpiry <= 7 ? 'text-red-600' : 'text-yellow-700'
+                      className={`text-sm font-medium data-num ${
+                        item.daysUntilExpiry <= 7 ? 'text-red-700' : 'text-amber-700'
                       }`}
                     >
                       {item.daysUntilExpiry}d
@@ -139,16 +141,29 @@ export default function Dashboard() {
   );
 }
 
+function KpiCard({ label, value }) {
+  return (
+    <div className="card">
+      <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="text-2xl font-semibold text-stone-900 data-num mt-1">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function DashboardSkeleton({ showKpis }) {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="h-10 bg-gray-200 rounded w-56"></div>
+      <div className="h-9 bg-stone-200 rounded w-48"></div>
       {showKpis && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card">
-              <div className="h-4 bg-gray-200 rounded w-24 mb-3"></div>
-              <div className="h-8 bg-gray-200 rounded w-32"></div>
+              <div className="h-3 bg-stone-200 rounded w-24 mb-3"></div>
+              <div className="h-7 bg-stone-200 rounded w-32"></div>
             </div>
           ))}
         </div>
@@ -156,10 +171,10 @@ function DashboardSkeleton({ showKpis }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map((i) => (
           <div key={i} className="card">
-            <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
-            <div className="space-y-3">
+            <div className="h-5 bg-stone-200 rounded w-32 mb-4"></div>
+            <div className="space-y-2">
               {[1, 2, 3].map((j) => (
-                <div key={j} className="h-14 bg-gray-100 rounded-lg"></div>
+                <div key={j} className="h-12 bg-stone-100 rounded-md"></div>
               ))}
             </div>
           </div>
