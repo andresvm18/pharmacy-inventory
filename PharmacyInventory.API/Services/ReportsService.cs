@@ -9,6 +9,8 @@ public interface IReportsService
     Task<RevenueSummaryResponse> GetRevenueSummaryAsync(DateTime startDate, DateTime endDate);
     Task<IEnumerable<ExpiringProductResponse>> GetExpiringProductsAsync(int daysThreshold = 30);
     Task<IEnumerable<StockMovementResponse>> GetStockMovementHistoryAsync(int? productId = null, int? batchId = null);
+    Task<IEnumerable<DailyRevenueResponse>> GetRevenueByDayAsync(DateTime startDate, DateTime endDate);
+    Task<IEnumerable<TopProductResponse>> GetTopProductsAsync(DateTime startDate, DateTime endDate, int limit = 5);
 }
 
 public class ReportsService : IReportsService
@@ -135,5 +137,77 @@ public class ReportsService : IReportsService
             (batchId.HasValue ? $"for batch {batchId}" : ""));
 
         return response;
+    }
+
+    /// Get daily revenue totals for a date range, including zero-sale days
+    /// so the chart has a continuous X axis.
+    public async Task<IEnumerable<DailyRevenueResponse>> GetRevenueByDayAsync(DateTime startDate, DateTime endDate)
+    {
+        var rangeStart = startDate.Date;
+        var rangeEnd = endDate.Date.AddDays(1);
+
+        // Group in the database, then fill gaps in memory
+        var dailyTotals = await _dbContext.Sales
+            .Where(s => s.CreatedAt >= rangeStart && s.CreatedAt < rangeEnd)
+            .GroupBy(s => s.CreatedAt.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                TotalSales = g.Count(),
+                TotalRevenue = g.Sum(s => s.Total)
+            })
+            .ToListAsync();
+
+        var lookup = dailyTotals.ToDictionary(d => d.Date);
+        var result = new List<DailyRevenueResponse>();
+
+        for (var day = rangeStart; day < rangeEnd; day = day.AddDays(1))
+        {
+            if (lookup.TryGetValue(day, out var data))
+            {
+                result.Add(new DailyRevenueResponse
+                {
+                    Date = day,
+                    TotalSales = data.TotalSales,
+                    TotalRevenue = data.TotalRevenue
+                });
+            }
+            else
+            {
+                result.Add(new DailyRevenueResponse { Date = day, TotalSales = 0, TotalRevenue = 0 });
+            }
+        }
+
+        return result;
+    }
+
+    /// Get best-selling products by units sold in a date range.
+    public async Task<IEnumerable<TopProductResponse>> GetTopProductsAsync(
+        DateTime startDate, DateTime endDate, int limit = 5)
+    {
+        var rangeStart = startDate.Date;
+        var rangeEnd = endDate.Date.AddDays(1);
+
+        var topProducts = await _dbContext.SaleItems
+            .Where(si => si.Sale.CreatedAt >= rangeStart && si.Sale.CreatedAt < rangeEnd)
+            .GroupBy(si => new
+            {
+                si.Batch.ProductId,
+                si.Batch.Product.Sku,
+                si.Batch.Product.Name
+            })
+            .Select(g => new TopProductResponse
+            {
+                ProductId = g.Key.ProductId,
+                Sku = g.Key.Sku,
+                Name = g.Key.Name,
+                UnitsSold = g.Sum(si => si.Quantity),
+                Revenue = g.Sum(si => si.Quantity * si.UnitPrice)
+            })
+            .OrderByDescending(t => t.UnitsSold)
+            .Take(limit)
+            .ToListAsync();
+
+        return topProducts;
     }
 }
