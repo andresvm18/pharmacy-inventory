@@ -25,12 +25,15 @@ public class SalesRepository : GenericRepository<Sale>, ISalesRepository
 
     public async Task<IEnumerable<Sale>> GetSalesByDateRangeAsync(DateTime startDate, DateTime endDate)
     {
+        var rangeStart = startDate.Date;
+        var rangeEnd = endDate.Date.AddDays(1);
+
         return await _dbContext.Sales
             .Include(s => s.User)
             .Include(s => s.SaleItems)
                 .ThenInclude(si => si.Batch)
                     .ThenInclude(b => b.Product)
-            .Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate)
+            .Where(s => s.CreatedAt >= rangeStart && s.CreatedAt < rangeEnd)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
     }

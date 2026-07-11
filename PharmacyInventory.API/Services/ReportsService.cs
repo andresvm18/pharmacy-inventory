@@ -26,8 +26,11 @@ public class ReportsService : IReportsService
     /// Includes total sales, items sold, revenue, and average order value.
     public async Task<RevenueSummaryResponse> GetRevenueSummaryAsync(DateTime startDate, DateTime endDate)
     {
+        var rangeStart = startDate.Date;
+        var rangeEnd = endDate.Date.AddDays(1);
+
         var sales = await _dbContext.Sales
-            .Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate)
+            .Where(s => s.CreatedAt >= rangeStart && s.CreatedAt < rangeEnd)
             .Include(s => s.SaleItems)
             .ToListAsync();
 
