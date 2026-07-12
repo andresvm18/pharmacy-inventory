@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { List, LayoutGrid, Syringe, Plus, Pencil, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { List, LayoutGrid, Syringe, Plus, Pencil, Package, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 import { supplierService } from '../services/supplierService';
 import ProductFormModal from '../components/ProductFormModal';
+import BatchesModal from '../components/BatchesModal';
 
 const SORT_ACCESSORS = {
   sku: (p) => p.sku,
@@ -28,6 +29,7 @@ export default function Products() {
   const [view, setView] = useState('table');
   const [editingProduct, setEditingProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [batchesProduct, setBatchesProduct] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
   const fetchAll = async () => {
@@ -116,15 +118,17 @@ export default function Products() {
 
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'all' ? 'btn-primary' : 'btn-secondary'
-              }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+              filter === 'all' ? 'btn-primary' : 'btn-secondary'
+            }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('low-stock')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
-              }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+              filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
+            }`}
           >
             Low stock
           </button>
@@ -132,16 +136,18 @@ export default function Products() {
           <div className="flex bg-stone-100 rounded-md p-1">
             <button
               onClick={() => setView('table')}
-              className={`p-1.5 rounded transition ${view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-                }`}
+              className={`p-1.5 rounded transition ${
+                view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+              }`}
               aria-label="Table view"
             >
               <List className="w-4 h-4" strokeWidth={2} />
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`p-1.5 rounded transition ${view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-                }`}
+              className={`p-1.5 rounded transition ${
+                view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+              }`}
               aria-label="Card view"
             >
               <LayoutGrid className="w-4 h-4" strokeWidth={2} />
@@ -170,11 +176,17 @@ export default function Products() {
           products={filteredProducts}
           canManage={canManage}
           onEdit={openEdit}
+          onBatches={setBatchesProduct}
           sortConfig={sortConfig}
           onSort={handleSort}
         />
       ) : (
-        <ProductsCards products={filteredProducts} canManage={canManage} onEdit={openEdit} />
+        <ProductsCards
+          products={filteredProducts}
+          canManage={canManage}
+          onEdit={openEdit}
+          onBatches={setBatchesProduct}
+        />
       )}
 
       {showForm && (
@@ -184,6 +196,14 @@ export default function Products() {
           suppliers={suppliers}
           onClose={() => setShowForm(false)}
           onSaved={fetchAll}
+        />
+      )}
+
+      {batchesProduct && (
+        <BatchesModal
+          product={batchesProduct}
+          onClose={() => setBatchesProduct(null)}
+          onChanged={fetchAll}
         />
       )}
     </div>
@@ -205,8 +225,9 @@ function StockBar({ available, min }) {
       </div>
       <div className="h-[3px] bg-stone-200 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${isLow ? 'bg-red-600' : 'bg-clinical-600'
-            }`}
+          className={`h-full rounded-full transition-all ${
+            isLow ? 'bg-red-600' : 'bg-clinical-600'
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -227,8 +248,9 @@ function SortableHeader({ label, sortKey, sortConfig, onSort, className = '' }) 
     >
       <button
         onClick={() => onSort(sortKey)}
-        className={`flex items-center gap-1 hover:text-stone-900 transition ${isActive ? 'text-clinical-700' : 'text-stone-500'
-          }`}
+        className={`flex items-center gap-1 hover:text-stone-900 transition ${
+          isActive ? 'text-clinical-700' : 'text-stone-500'
+        }`}
       >
         {label}
         <Icon className="w-3 h-3" strokeWidth={2} />
@@ -237,7 +259,7 @@ function SortableHeader({ label, sortKey, sortConfig, onSort, className = '' }) 
   );
 }
 
-function ProductsTable({ products, canManage, onEdit, sortConfig, onSort }) {
+function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onSort }) {
   return (
     <div className="card p-0 overflow-hidden">
       <div className="overflow-x-auto">
@@ -291,14 +313,23 @@ function ProductsTable({ products, canManage, onEdit, sortConfig, onSort }) {
                   )}
                 </td>
                 {canManage && (
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => onEdit(product)}
-                      className="text-stone-400 hover:text-clinical-700 transition"
-                      aria-label={`Edit ${product.name}`}
-                    >
-                      <Pencil className="w-4 h-4" strokeWidth={2} />
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        onClick={() => onBatches(product)}
+                        className="text-stone-400 hover:text-clinical-700 transition"
+                        aria-label={`View batches for ${product.name}`}
+                      >
+                        <Package className="w-4 h-4" strokeWidth={2} />
+                      </button>
+                      <button
+                        onClick={() => onEdit(product)}
+                        className="text-stone-400 hover:text-clinical-700 transition"
+                        aria-label={`Edit ${product.name}`}
+                      >
+                        <Pencil className="w-4 h-4" strokeWidth={2} />
+                      </button>
+                    </div>
                   </td>
                 )}
               </tr>
@@ -310,7 +341,7 @@ function ProductsTable({ products, canManage, onEdit, sortConfig, onSort }) {
   );
 }
 
-function ProductsCards({ products, canManage, onEdit }) {
+function ProductsCards({ products, canManage, onEdit, onBatches }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {products.map((product) => (
@@ -327,13 +358,22 @@ function ProductsCards({ products, canManage, onEdit }) {
                 </span>
               )}
               {canManage && (
-                <button
-                  onClick={() => onEdit(product)}
-                  className="text-stone-400 hover:text-clinical-700 transition"
-                  aria-label={`Edit ${product.name}`}
-                >
-                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
+                <>
+                  <button
+                    onClick={() => onBatches(product)}
+                    className="text-stone-400 hover:text-clinical-700 transition"
+                    aria-label={`View batches for ${product.name}`}
+                  >
+                    <Package className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                  <button
+                    onClick={() => onEdit(product)}
+                    className="text-stone-400 hover:text-clinical-700 transition"
+                    aria-label={`Edit ${product.name}`}
+                  >
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                  </button>
+                </>
               )}
             </div>
           </div>
