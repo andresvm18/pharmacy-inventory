@@ -5,6 +5,8 @@ using PharmacyInventory.API.Data;
 using PharmacyInventory.API.Services;
 using PharmacyInventory.API.Repositories;
 using PharmacyInventory.API.Middleware;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,26 @@ builder.Services.AddAuthorization();
 // Add controllers
 builder.Services.AddControllers();
 
+// Add rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("LoginPolicy", opt =>
+    {
+        opt.PermitLimit = 5;                   // 5 intentos
+        opt.Window = TimeSpan.FromMinutes(1);  // por minuto
+        opt.QueueLimit = 0;                    // sin cola: el 6to intento se rechaza directo
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            "{\"message\":\"Too many login attempts. Please wait a moment and try again.\"}", token);
+    };
+});
+
 // Add CORS for React frontend
 builder.Services.AddCors(options =>
 {
@@ -100,6 +122,7 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 app.UseGlobalExceptionHandler();
+app.UseRateLimiter();
 
 // Apply pending migrations automatically
 using (var scope = app.Services.CreateScope())

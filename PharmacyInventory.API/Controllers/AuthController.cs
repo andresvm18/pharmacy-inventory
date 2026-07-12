@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PharmacyInventory.API.DTOs;
 using PharmacyInventory.API.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace PharmacyInventory.API.Controllers;
 
@@ -20,6 +21,7 @@ public class AuthController : ControllerBase
     /// Login with username and password.
     /// Returns JWT token if credentials are valid.
     [HttpPost("login")]
+    [EnableRateLimiting("LoginPolicy")]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
