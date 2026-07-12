@@ -14,28 +14,49 @@ VALUES
     ('caja',     'Marco Solano',          '$2b$10$zWbcVb1ev8w3MJme2LFK0uVytS10ZLVyX.ML0nXd.ETlCvFgpzbm2', 'CASHIER');
 GO
 -- =====================================================================
--- Categories
+-- Categories (15 — enough to demonstrate pagination in Catalog)
 -- =====================================================================
 INSERT INTO [dbo].[Categories] ([Name])
 VALUES
-    ('Pain Relief'),
-    ('Antibiotics'),
-    ('Antihistamines'),
-    ('Gastrointestinal'),
-    ('Vitamins & Supplements'),
-    ('Personal Care');
+    ('Pain Relief'),               -- 1
+    ('Antibiotics'),                -- 2
+    ('Antihistamines'),             -- 3
+    ('Gastrointestinal'),           -- 4
+    ('Vitamins & Supplements'),     -- 5
+    ('Personal Care'),              -- 6
+    ('Dermatology'),                -- 7
+    ('Cardiovascular'),             -- 8
+    ('Respiratory'),                -- 9
+    ('Diabetes Care'),              -- 10
+    ('Ophthalmology'),              -- 11
+    ('First Aid'),                  -- 12
+    ('Women''s Health'),            -- 13
+    ('Pediatrics'),                 -- 14
+    ('Oral Care');                  -- 15
 GO
 -- =====================================================================
--- Suppliers
+-- Suppliers (15 — enough to demonstrate pagination in Catalog)
 -- =====================================================================
 INSERT INTO [dbo].[Suppliers] ([Name], [Phone], [Email])
 VALUES
-    ('Central Pharma Distribution', '2222-1111', 'sales@centralpharma.example'),
-    ('LaboFarma Inc.',              '2233-4455', 'orders@labofarma.example'),
-    ('MediSupply CR',               '2244-6677', 'contact@medisupply.example');
+    ('Central Pharma Distribution', '2222-1111', 'sales@centralpharma.example'),      -- 1
+    ('LaboFarma Inc.',              '2233-4455', 'orders@labofarma.example'),         -- 2
+    ('MediSupply CR',               '2244-6677', 'contact@medisupply.example'),       -- 3
+    ('Global Health Supplies',      '2255-8899', 'sales@globalhealthsupplies.example'),-- 4
+    ('PharmaLink Distributors',     '2266-3344', 'orders@pharmalink.example'),        -- 5
+    ('Costa Rica Medical Supply',   '2277-5566', 'contact@crmedsupply.example'),      -- 6
+    ('BioPharma Solutions',         '2288-1122', 'sales@biopharmasolutions.example'), -- 7
+    ('National Drug Co.',           '2299-4433', 'orders@nationaldrug.example'),      -- 8
+    ('Wellness Wholesale',          '2211-7788', 'contact@wellnesswholesale.example'),-- 9
+    ('Prime Pharma Partners',       '2222-9900', 'sales@primepharma.example'),        -- 10
+    ('HealthFirst Distribution',    '2233-6677', 'orders@healthfirst.example'),       -- 11
+    ('MedEquip Supply',             '2244-1199', 'contact@medequipsupply.example'),   -- 12
+    ('Continental Pharma',          '2255-3322', 'sales@continentalpharma.example'),  -- 13
+    ('Unity Health Supplies',       '2266-8855', 'orders@unityhealth.example'),       -- 14
+    ('Vitality Distributors',       '2277-4411', 'contact@vitalitydist.example');     -- 15
 GO
 -- =====================================================================
--- Products
+-- Products (15 — enough to demonstrate pagination in Products page)
 -- =====================================================================
 INSERT INTO [dbo].[Products] ([Sku], [Name], [Description], [CategoryId], [SupplierId], [UnitPrice], [MinStock], [RequiresRx])
 VALUES
@@ -48,7 +69,12 @@ VALUES
     ('GAS-002', 'Oral Rehydration Salts',                  'Sachet for preparing 1 liter',         4, 3,  600.00, 40, 0),
     ('VIT-001', 'Vitamin C 1g (10 effervescent tablets)',  'Vitamin supplement',                   5, 3, 2200.00, 15, 0),
     ('VIT-002', 'Vitamin B Complex (30 tablets)',          'B-group vitamin supplement',           5, 3, 3100.00, 10, 0),
-    ('CUI-001', 'Hand Sanitizer Gel 250ml',                '70% antiseptic for hands',             6, 3, 1400.00, 25, 0);
+    ('CUI-001', 'Hand Sanitizer Gel 250ml',                '70% antiseptic for hands',             6, 3, 1400.00, 25, 0),
+    ('CVR-001', 'Amlodipine 5mg (30 tablets)',             'Antihypertensive, calcium channel blocker', 8, 4, 2500.00, 20, 1),
+    ('RES-001', 'Salbutamol Inhaler 100mcg',               'Bronchodilator for asthma relief',     9, 5, 5200.00, 10, 1),
+    ('DIA-001', 'Metformin 500mg (30 tablets)',            'Oral antidiabetic, first-line therapy',10, 6, 1900.00, 20, 1),
+    ('OPH-001', 'Artificial Tears Eye Drops 15ml',         'Lubricant eye drops for dry eyes',     11, 7, 1600.00, 15, 0),
+    ('ORA-001', 'Fluoride Toothpaste 100g',                'Cavity prevention toothpaste',         15, 8,  950.00, 30, 0);
 GO
 -- =====================================================================
 -- Batches (with varying expiration statuses: expired, nearing expiration, valid)
@@ -72,7 +98,14 @@ VALUES
     (8,  'VTC-2702A', '2027-02-28',  30, 1300.00),
     (9,  'CPB-2612A', '2026-12-15',   6, 1900.00),   -- LOW STOCK (min 10)
     (10, 'ALC-2608A', '2026-08-31',  15,  750.00),   -- EXPIRING SOON
-    (10, 'ALC-2712A', '2027-12-31',  70,  800.00);
+    (10, 'ALC-2712A', '2027-12-31',  70,  800.00),
+    (11, 'AML-2708A', '2026-08-01',  12, 1400.00),   -- EXPIRING SOON
+    (11, 'AML-2706A', '2027-06-30',  40, 1380.00),
+    (12, 'SAL-2705A', '2027-05-31',  25, 3900.00),
+    (13, 'MET-2703A', '2027-03-31',   8, 1450.00),   -- LOW STOCK (min 20)
+    (14, 'ART-2506A', '2026-06-20',   5, 1200.00),   -- EXPIRED
+    (14, 'ART-2707A', '2027-07-31',  20, 1150.00),
+    (15, 'FLU-2710A', '2027-10-31',  60,  550.00);
 GO
 -- =====================================================================
 -- Stock movements: entry of each batch (audit trail)
