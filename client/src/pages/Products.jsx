@@ -267,11 +267,12 @@ function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onS
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
               <SortableHeader label="SKU" sortKey="sku" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="Name" sortKey="name" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="Category" sortKey="category" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="Price" sortKey="price" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="Stock" sortKey="stock" sortConfig={sortConfig} onSort={onSort} className="w-40" />
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
+              <SortableHeader label="NAME" sortKey="name" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="CATEGORY" sortKey="category" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="PRICE" sortKey="price" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="STOCK" sortKey="stock" sortConfig={sortConfig} onSort={onSort} className="w-40" />
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs tracking-wide">STATUS</th>
+              
               {canManage && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
