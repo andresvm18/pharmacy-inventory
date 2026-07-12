@@ -1,0 +1,62 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: pharmacy-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - pharmacy-db-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: pharmacy-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SA_PASSWORD: "${SA_PASSWORD}"
+    volumes:
+      - ./db:/scripts
+    entrypoint: ["bash", "/scripts/docker-entrypoint.sh"]
+
+  api:
+    build:
+      context: .
+      dockerfile: PharmacyInventory.API/Dockerfile
+    container_name: pharmacy-api
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=db;Database=PharmacyInventory;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "PharmacyInventory"
+      Jwt__Audience: "PharmacyInventoryClient"
+      Jwt__ExpirationHours: "24"
+    ports:
+      - "5000:8080"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "http://localhost:5000/api"
+    container_name: pharmacy-client
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  pharmacy-db-data:

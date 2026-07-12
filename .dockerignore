@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.vs/
+**/.vscode/
+.git/
+.gitignore
+.env
+.env.docker
+*.user
+db/
+client/
+PharmacyInventory.Tests/
+.github/
+README.md
+run-tests.ps1
