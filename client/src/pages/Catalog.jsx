@@ -5,6 +5,8 @@ import { categoryService } from '../services/categoryService';
 import { supplierService } from '../services/supplierService';
 import CategoryFormModal from '../components/CategoryFormModal';
 import SupplierFormModal from '../components/SupplierFormModal';
+import Pagination from '../components/Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 export default function Catalog() {
   const [tab, setTab] = useState('categories');
@@ -16,6 +18,9 @@ export default function Catalog() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
+
+  const categoriesPagination = usePagination(categories, 10);
+  const suppliersPagination = usePagination(suppliers, 10);
 
   const fetchAll = async () => {
     try {
@@ -119,7 +124,7 @@ export default function Catalog() {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((cat) => (
+                {categoriesPagination.paginated.map((cat) => (
                   <tr key={cat.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                     <td className="px-4 py-3 font-medium text-stone-900">{cat.name}</td>
                     <td className="px-4 py-3 text-stone-600 data-num">{cat.productCount}</td>
@@ -145,6 +150,13 @@ export default function Catalog() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={categoriesPagination.page}
+              totalPages={categoriesPagination.totalPages}
+              onPageChange={categoriesPagination.setPage}
+              totalItems={categories.length}
+              pageSize={10}
+            />
           </div>
         </div>
       ) : (
@@ -171,7 +183,7 @@ export default function Catalog() {
                 </tr>
               </thead>
               <tbody>
-                {suppliers.map((sup) => (
+                {suppliersPagination.paginated.map((sup) => (
                   <tr key={sup.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                     <td className="px-4 py-3 font-medium text-stone-900">{sup.name}</td>
                     <td className="px-4 py-3 text-stone-600 data-num">{sup.phone || '—'}</td>
@@ -199,6 +211,13 @@ export default function Catalog() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={suppliersPagination.page}
+              totalPages={suppliersPagination.totalPages}
+              onPageChange={suppliersPagination.setPage}
+              totalItems={suppliers.length}
+              pageSize={10}
+            />
           </div>
         </div>
       )}

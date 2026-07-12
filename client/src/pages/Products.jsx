@@ -7,6 +7,8 @@ import { categoryService } from '../services/categoryService';
 import { supplierService } from '../services/supplierService';
 import ProductFormModal from '../components/ProductFormModal';
 import BatchesModal from '../components/BatchesModal';
+import Pagination from '../components/Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 const SORT_ACCESSORS = {
   sku: (p) => p.sku,
@@ -90,6 +92,8 @@ export default function Products() {
     return sorted;
   }, [products, filter, search, sortConfig]);
 
+  const { page, setPage, totalPages, paginated } = usePagination(filteredProducts, 10);
+
   const openCreate = () => {
     setEditingProduct(null);
     setShowForm(true);
@@ -118,17 +122,15 @@ export default function Products() {
 
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-              filter === 'all' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'all' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('low-stock')}
-            className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-              filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
-            }`}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition ${filter === 'low-stock' ? 'btn-primary' : 'btn-secondary'
+              }`}
           >
             Low stock
           </button>
@@ -136,18 +138,16 @@ export default function Products() {
           <div className="flex bg-stone-100 rounded-md p-1">
             <button
               onClick={() => setView('table')}
-              className={`p-1.5 rounded transition ${
-                view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-              }`}
+              className={`p-1.5 rounded transition ${view === 'table' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+                }`}
               aria-label="Table view"
             >
               <List className="w-4 h-4" strokeWidth={2} />
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`p-1.5 rounded transition ${
-                view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
-              }`}
+              className={`p-1.5 rounded transition ${view === 'cards' ? 'bg-white shadow-sm text-clinical-700' : 'text-stone-400'
+                }`}
               aria-label="Card view"
             >
               <LayoutGrid className="w-4 h-4" strokeWidth={2} />
@@ -173,20 +173,35 @@ export default function Products() {
         </div>
       ) : view === 'table' ? (
         <ProductsTable
-          products={filteredProducts}
+          products={paginated}
           canManage={canManage}
           onEdit={openEdit}
           onBatches={setBatchesProduct}
           sortConfig={sortConfig}
           onSort={handleSort}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          totalItems={filteredProducts.length}
         />
       ) : (
-        <ProductsCards
-          products={filteredProducts}
-          canManage={canManage}
-          onEdit={openEdit}
-          onBatches={setBatchesProduct}
-        />
+        <>
+          <ProductsCards
+            products={paginated}
+            canManage={canManage}
+            onEdit={openEdit}
+            onBatches={setBatchesProduct}
+          />
+          <div className="card p-0">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              totalItems={filteredProducts.length}
+              pageSize={10}
+            />
+          </div>
+        </>
       )}
 
       {showForm && (
@@ -225,9 +240,8 @@ function StockBar({ available, min }) {
       </div>
       <div className="h-[3px] bg-stone-200 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
-            isLow ? 'bg-red-600' : 'bg-clinical-600'
-          }`}
+          className={`h-full rounded-full transition-all ${isLow ? 'bg-red-600' : 'bg-clinical-600'
+            }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -248,9 +262,8 @@ function SortableHeader({ label, sortKey, sortConfig, onSort, className = '' }) 
     >
       <button
         onClick={() => onSort(sortKey)}
-        className={`flex items-center gap-1 hover:text-stone-900 transition ${
-          isActive ? 'text-clinical-700' : 'text-stone-500'
-        }`}
+        className={`flex items-center gap-1 hover:text-stone-900 transition ${isActive ? 'text-clinical-700' : 'text-stone-500'
+          }`}
       >
         {label}
         <Icon className="w-3 h-3" strokeWidth={2} />
@@ -259,7 +272,7 @@ function SortableHeader({ label, sortKey, sortConfig, onSort, className = '' }) 
   );
 }
 
-function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onSort }) {
+function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onSort, page, totalPages, onPageChange, totalItems }) {
   return (
     <div className="card p-0 overflow-hidden">
       <div className="overflow-x-auto">
@@ -267,12 +280,11 @@ function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onS
           <thead className="bg-stone-50 border-b border-stone-200">
             <tr>
               <SortableHeader label="SKU" sortKey="sku" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="NAME" sortKey="name" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="CATEGORY" sortKey="category" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="PRICE" sortKey="price" sortConfig={sortConfig} onSort={onSort} />
-              <SortableHeader label="STOCK" sortKey="stock" sortConfig={sortConfig} onSort={onSort} className="w-40" />
-              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs tracking-wide">STATUS</th>
-              
+              <SortableHeader label="Name" sortKey="name" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Category" sortKey="category" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Price" sortKey="price" sortConfig={sortConfig} onSort={onSort} />
+              <SortableHeader label="Stock" sortKey="stock" sortConfig={sortConfig} onSort={onSort} className="w-40" />
+              <th className="px-4 py-3 text-left font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
               {canManage && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
@@ -338,6 +350,13 @@ function ProductsTable({ products, canManage, onEdit, onBatches, sortConfig, onS
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        totalItems={totalItems}
+        pageSize={10}
+      />
     </div>
   );
 }

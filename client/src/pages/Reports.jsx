@@ -6,6 +6,8 @@ import {
   Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { reportService } from '../services/reportService';
+import Pagination from '../components/Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 const PRESETS = [
   { label: 'Today', days: 0 },
@@ -26,6 +28,7 @@ export default function Reports() {
   const [topProducts, setTopProducts] = useState([]);
   const [expiring, setExpiring] = useState([]);
   const [movements, setMovements] = useState([]);
+  const { page: movementsPage, setPage: setMovementsPage, totalPages: movementsTotalPages, paginated: paginatedMovements } = usePagination(movements, 10);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 6);
@@ -57,7 +60,7 @@ export default function Reports() {
       );
       setTopProducts(topData);
       setExpiring(expData.slice(0, 10));
-      setMovements(movData.slice(0, 20));
+      setMovements(movData);
     } catch {
       toast.error('Error loading reports');
     } finally {
@@ -284,7 +287,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {movements.map((mov) => (
+              {paginatedMovements.map((mov) => (
                 <tr key={mov.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                   <td className="px-4 py-3 font-medium text-stone-900">{mov.productName}</td>
                   <td className="px-4 py-3">
@@ -305,6 +308,13 @@ export default function Reports() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={movementsPage}
+          totalPages={movementsTotalPages}
+          onPageChange={setMovementsPage}
+          totalItems={movements.length}
+          pageSize={10}
+        />
       </div>
     </div>
   );

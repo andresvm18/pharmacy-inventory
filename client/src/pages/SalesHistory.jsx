@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { Receipt } from 'lucide-react';
 import { salesService } from '../services/salesService';
 import SaleResultModal from '../components/SaleResultModal';
+import Pagination from '../components/Pagination';
+import { usePagination } from '../hooks/usePagination';
 
 const PRESETS = [
   { label: 'Today', days: 0 },
@@ -60,6 +62,8 @@ export default function SalesHistory() {
 
   const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0);
 
+  const { page, setPage, totalPages, paginated } = usePagination(sales, 10);
+
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl font-semibold text-stone-900">Sales history</h1>
@@ -70,9 +74,8 @@ export default function SalesHistory() {
             <button
               key={preset.label}
               onClick={() => applyPreset(preset)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                activePreset === preset.label ? 'btn-primary' : 'btn-secondary'
-              }`}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${activePreset === preset.label ? 'btn-primary' : 'btn-secondary'
+                }`}
             >
               {preset.label}
             </button>
@@ -139,7 +142,7 @@ export default function SalesHistory() {
                 </tr>
               </thead>
               <tbody>
-                {sales.map((sale) => (
+                {paginated.map((sale) => (
                   <tr key={sale.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                     <td className="px-4 py-3 font-medium text-stone-900 data-num">#{sale.id}</td>
                     <td className="px-4 py-3 text-stone-600 data-num text-xs">
@@ -167,6 +170,13 @@ export default function SalesHistory() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            totalItems={sales.length}
+            pageSize={10}
+          />
         </div>
       )}
 
