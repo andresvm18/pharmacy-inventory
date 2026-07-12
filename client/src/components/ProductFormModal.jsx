@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { productService } from '../services/productService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 const emptyForm = {
   sku: '',
@@ -17,6 +18,7 @@ export default function ProductFormModal({ product, categories, suppliers, onClo
   const isEdit = Boolean(product);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const containerRef = useModalA11y(onClose);
 
   useEffect(() => {
     if (product) {
@@ -84,11 +86,15 @@ export default function ProductFormModal({ product, categories, suppliers, onClo
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-modal-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-lg max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-stone-200">
-          <h2 className="font-display text-lg font-semibold text-stone-900">
+          <h2 className="font-display text-lg font-semibold text-stone-900" id="product-modal-title">
             {isEdit ? 'Edit product' : 'Add product'}
           </h2>
         </div>

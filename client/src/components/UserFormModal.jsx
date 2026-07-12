@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { userService } from '../services/userService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 const ROLES = ['ADMIN', 'PHARMACIST', 'CASHIER'];
 
@@ -10,6 +11,7 @@ export default function UserFormModal({ user, onClose, onSaved }) {
   const isEdit = Boolean(user);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const containerRef = useModalA11y(onClose);
 
   useEffect(() => {
     if (user) {
@@ -62,11 +64,15 @@ export default function UserFormModal({ user, onClose, onSaved }) {
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-modal-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-stone-200">
-          <h2 className="font-display text-lg font-semibold text-stone-900">
+          <h2 className="font-display text-lg font-semibold text-stone-900" id="user-modal-title">
             {isEdit ? 'Edit user' : 'Add user'}
           </h2>
         </div>

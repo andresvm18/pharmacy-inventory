@@ -1,5 +1,9 @@
+import { useModalA11y } from '../hooks/useModalA11y';
+
 export default function SaleResultModal({ sale, onClose, closeLabel = 'New sale' }) {
   if (!sale) return null;
+
+  const containerRef = useModalA11y(onClose);
 
   const formatDate = (dateStr) =>
     new Date(dateStr).toLocaleDateString('en-US', {
@@ -14,13 +18,17 @@ export default function SaleResultModal({ sale, onClose, closeLabel = 'New sale'
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sale-modal-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-lg max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-stone-200 flex justify-between items-center">
           <div>
-            <h2 className="font-display text-lg font-semibold text-stone-900">
+            <h2 className="font-display text-lg font-semibold text-stone-900" id="sale-modal-title">
               Sale #{sale.id} completed
             </h2>
             <p className="text-sm text-stone-500">

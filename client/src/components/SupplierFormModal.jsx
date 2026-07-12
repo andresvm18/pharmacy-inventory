@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supplierService } from '../services/supplierService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 const emptyForm = { name: '', phone: '', email: '' };
 
@@ -56,11 +57,15 @@ export default function SupplierFormModal({ supplier, onClose, onSaved }) {
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="supplier-modal-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-stone-200">
-          <h2 className="font-display text-lg font-semibold text-stone-900">
+          <h2 className="font-display text-lg font-semibold text-stone-900" id="supplier-modal-title">
             {isEdit ? 'Edit supplier' : 'Add supplier'}
           </h2>
         </div>

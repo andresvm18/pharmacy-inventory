@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { userService } from '../services/userService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 export default function ResetPasswordModal({ user, onClose, onSaved }) {
   const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const containerRef = useModalA11y(onClose);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,11 +34,17 @@ export default function ResetPasswordModal({ user, onClose, onSaved }) {
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-password-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-stone-200">
-          <h2 className="font-display text-lg font-semibold text-stone-900">Reset password</h2>
+          <h2 className="font-display text-lg font-semibold text-stone-900" id="reset-password-title">
+            Reset password
+          </h2>
           <p className="text-sm text-stone-500 mt-1">for {user.fullName}</p>
         </div>
 

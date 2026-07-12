@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { categoryService } from '../services/categoryService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 export default function CategoryFormModal({ category, onClose, onSaved }) {
   const isEdit = Boolean(category);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
+  const containerRef = useModalA11y(onClose);
 
   useEffect(() => {
     setName(category?.name || '');
@@ -42,11 +44,15 @@ export default function CategoryFormModal({ category, onClose, onSaved }) {
       onClick={onClose}
     >
       <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-modal-title"
         className="bg-white rounded-lg border border-stone-200 w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-stone-200">
-          <h2 className="font-display text-lg font-semibold text-stone-900">
+          <h2 className="font-display text-lg font-semibold text-stone-900" id="category-modal-title">
             {isEdit ? 'Edit category' : 'Add category'}
           </h2>
         </div>
