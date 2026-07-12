@@ -56,6 +56,7 @@ pharmacy-inventory/
 │   │   ├── CategoriesController.cs
 │   │   ├── SuppliersController.cs
 │   │   └── UsersController.cs
+│   └── Dockerfile             # Multi-stage build (SDK → ASP.NET runtime)
 │   ├── Services/              # Business Logic
 │   │   ├── AuthService.cs
 │   │   ├── ProductService.cs
@@ -92,10 +93,14 @@ pharmacy-inventory/
 │   │   ├── index.css         # Design tokens (clinical palette, typography)
 │   │   └── App.jsx
 │   ├── tailwind.config.js    # Clinical color palette + type scale
+│   ├── Dockerfile            # Multi-stage build (Node → nginx)
+│   ├── nginx.conf            # SPA fallback routin
 │   └── package.json
 ├── db/
 │   ├── schema.sql            # T-SQL DDL (tables, indexes, constraints)
 │   └── seed.sql              # Mock data (10 products, 18 batches, 3 users)
+│   └── docker-entrypoint.sh   # Waits for SQL Server, then loads schema + seed
+├── docker-compose.yml         # Orchestrates db, db-init, api, client
 ├── .github/workflows/        # GitHub Actions CI/CD pipeline
 ├── PharmacyInventory.sln     # Solution file
 └── README.md
@@ -103,13 +108,49 @@ pharmacy-inventory/
 
 ## Getting Started
 
-### Prerequisites
+### Option A: Docker (recommended)
 
+The fastest way to run the full stack — SQL Server, API, and frontend — with one command.
+
+**Prerequisites:** Docker Desktop
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/andresvm18/pharmacy-inventory.git
+cd pharmacy-inventory
+
+# 2. Copy the environment template and set your own values
+cp .env.docker.example .env.docker
+
+# 3. Build and start everything
+docker-compose --env-file .env.docker up --build
+```
+
+First run takes a few minutes: SQL Server initializes, then `db-init` automatically loads the schema and seed data once the database is healthy. Subsequent runs are much faster (`docker-compose --env-file .env.docker up`, no `--build` needed unless code changed).
+
+- **Frontend:** http://localhost:5173
+- **API / Swagger:** http://localhost:5000/swagger
+
+To stop everything:
+```bash
+docker-compose --env-file .env.docker down
+```
+
+To reset the database completely (drops all data):
+```bash
+docker-compose --env-file .env.docker down -v
+```
+
+### Option B: Manual setup
+
+For local development with hot-reload on both API and frontend.
+
+**Prerequisites:**
 - .NET 8 SDK
 - SQL Server 2022 (or SQL Server Express)
 - Node.js 18+
 
-### Backend Setup
+**Backend:**
 
 ```bash
 # 1. Clone the repository
@@ -134,7 +175,7 @@ dotnet run
 # Swagger UI: http://localhost:5000/swagger
 ```
 
-### Frontend Setup
+**Frontend:**
 
 ```bash
 # From root directory
@@ -286,7 +327,6 @@ dotnet test
 
 This is a portfolio demonstration, not a production deployment. Notable gaps by design:
 - No integration test suite exercising the full FEFO allocation flow against a real database (current tests cover unit-level logic)
-- No Docker/Compose setup for one-command local startup
 - No pagination on list endpoints (fine at demo data volumes, would need it at scale)
 
 ## License
@@ -301,5 +341,5 @@ Full-stack developer | Costa Rica
 
 ---
 
-**Version:** 1.3.0-feature-complete (July 2026)  
-**Status:** Feature-complete, visually polished, production-ready architecture
+**Version:** 1.4.0-docker (July 2026)  
+**Status:** Feature-complete, containerized, visually polished, production-ready architecture
