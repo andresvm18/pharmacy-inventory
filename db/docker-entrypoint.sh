@@ -22,9 +22,9 @@ do
 done
 
 echo "SQL Server is ready. Loading schema..."
-"$SQLCMD" -S db -U sa -P "$SA_PASSWORD" -C -f 65001 -i /scripts/schema.sql
+"$SQLCMD" -S db -U sa -P "$SA_PASSWORD" -C -i /scripts/schema.sql
 
 echo "Loading seed data..."
-"$SQLCMD" -S db -U sa -P "$SA_PASSWORD" -C -f 65001 -i /scripts/seed.sql
+"$SQLCMD" -S db -U sa -P "$SA_PASSWORD" -C -i /scripts/seed.sql
 
 echo "Database initialization complete."
