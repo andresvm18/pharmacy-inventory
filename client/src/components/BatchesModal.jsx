@@ -18,6 +18,7 @@ export default function BatchesModal({ product, onClose, onChanged }) {
   const [adjustQty, setAdjustQty] = useState('');
   const [adjustReason, setAdjustReason] = useState('');
   const [adjusting, setAdjusting] = useState(false);
+  const containerRef = useModalA11y(onClose);
 
   const fetchBatches = async () => {
     try {
